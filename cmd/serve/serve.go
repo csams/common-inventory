@@ -24,6 +24,13 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return errors.NewAggregate(errs)
 			}
 
+			storageConfig := storage.NewConfig(storageOptions).Complete()
+
+			db, err := storage.New(storageConfig)
+			if err != nil {
+				return err
+			}
+
 			if err := serverOptions.Complete(); err != nil {
 				return err
 			}
@@ -32,17 +39,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return errors.NewAggregate(errs)
 			}
 
-			storageConfig, err := storage.NewConfig(storageOptions).Complete()
-			if err != nil {
-				return err
-			}
-
 			serverConfig := server.NewConfig(serverOptions).Complete()
-
-			db, err := storage.New(storageConfig)
-			if err != nil {
-				return err
-			}
 
 			handler := controllers.NewHandler(db, log)
 			server, err := server.New(serverConfig, handler, log)
@@ -54,8 +51,8 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 		},
 	}
 
-	serverOptions.AddFlags(cmd.Flags(), "server")
 	storageOptions.AddFlags(cmd.Flags(), "storage")
+	serverOptions.AddFlags(cmd.Flags(), "server")
 
 	return cmd
 }

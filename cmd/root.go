@@ -30,11 +30,11 @@ var (
 	}
 
 	options = struct {
-		Server  *server.Options  `mapstructure:"server"`
 		Storage *storage.Options `mapstructure:"storage"`
+		Server  *server.Options  `mapstructure:"server"`
 	}{
-		server.NewOptions(),
 		storage.NewOptions(),
+		server.NewOptions(),
 	}
 )
 
@@ -55,13 +55,13 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $PWD/.common-inventory.yaml)")
 	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
-	serveCmd := serve.NewCommand(options.Server, options.Storage, rootLog.WithGroup("server"))
-	rootCmd.AddCommand(serveCmd)
-	viper.BindPFlags(serveCmd.Flags())
-
 	migrateCmd := migrate.NewCommand(options.Storage, rootLog.WithGroup("storage"))
 	rootCmd.AddCommand(migrateCmd)
 	viper.BindPFlags(migrateCmd.Flags())
+
+	serveCmd := serve.NewCommand(options.Server, options.Storage, rootLog.WithGroup("server"))
+	rootCmd.AddCommand(serveCmd)
+	viper.BindPFlags(serveCmd.Flags())
 }
 
 // initConfig reads in config file and ENV variables if set.

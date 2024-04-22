@@ -37,26 +37,22 @@ func NewConfig(o *Options) *Config {
 	return cfg
 }
 
-func (c *Config) Complete() (CompletedConfig, error) {
+func (c *Config) Complete() CompletedConfig {
 	cfg := &completedConfig{
 		Database: c.Database,
 		DSN:      c.DSN,
 	}
 
 	if c.DSN != "" {
-		return CompletedConfig{cfg}, nil
+		return CompletedConfig{cfg}
 	}
 
 	switch c.Database {
 	case "postgres":
-		c, err := c.Postgres.Complete()
-		if err != nil {
-			return CompletedConfig{}, err
-		}
-		cfg.DSN = c.DSN
+		cfg.DSN = c.Postgres.Complete().DSN
 	case "sqlite3":
 		cfg.DSN = c.SqlLite3.Complete().DSN
 	}
 
-	return CompletedConfig{cfg}, nil
+	return CompletedConfig{cfg}
 }

@@ -25,9 +25,9 @@ func NewConfig(o *Options) *Config {
 	}
 }
 
-func (c *Config) Complete() (CompletedConfig, error) {
+func (c *Config) Complete() CompletedConfig {
 	if c.DSN != "" {
-		return CompletedConfig{&completedConfig{DSN: c.DSN}}, nil
+		return CompletedConfig{&completedConfig{DSN: c.DSN}}
 	}
 
 	dsnBuilder := new(strings.Builder)
@@ -65,5 +65,5 @@ func (c *Config) Complete() (CompletedConfig, error) {
 
 	dsn := strings.TrimSpace(dsnBuilder.String())
 
-	return CompletedConfig{&completedConfig{DSN: dsn}}, nil
+	return CompletedConfig{&completedConfig{DSN: dsn}}
 }

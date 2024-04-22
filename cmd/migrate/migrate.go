@@ -22,10 +22,7 @@ func NewCommand(options *storage.Options, log *slog.Logger) *cobra.Command {
 				return errors.NewAggregate(errs)
 			}
 
-			config, err := storage.NewConfig(options).Complete()
-			if err != nil {
-				return err
-			}
+			config := storage.NewConfig(options).Complete()
 
 			db, err := storage.New(config)
 			if err != nil {
