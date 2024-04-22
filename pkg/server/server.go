@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-    "log/slog"
+	"log/slog"
 	"net/http"
 )
 
