@@ -4,7 +4,7 @@ type Cluster struct {
 	Common
 
 	ResourceID int64    `json:"-"`
-	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"Metadata"`
+	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE"`
 	ApiServer  string
 }
 
