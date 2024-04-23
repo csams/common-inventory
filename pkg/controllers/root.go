@@ -1,4 +1,3 @@
-
 package controllers
 
 import (
@@ -28,8 +27,9 @@ func NewHandler(db *gorm.DB, log *slog.Logger) chi.Router {
 	r.Get("/healthz", Ready)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Mount("/hosts", NewCRUD[models.Host](db, log).Routes())
-		r.Mount("/clusters", NewCRUD[models.Cluster](db, log).Routes())
+		r.Mount("/resources", NewCRUD[models.Resource](db, log, WithoutMutatingVerbs).Routes())
+		r.Mount("/hosts", NewCRUD[models.Host](db, log, AsResourceType[models.Host]("host", "hosts")).Routes())
+		r.Mount("/clusters", NewCRUD[models.Cluster](db, log, AsResourceType[models.Cluster]("cluster", "clusters")).Routes())
 	})
 
 	return r
