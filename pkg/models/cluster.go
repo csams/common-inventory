@@ -4,7 +4,8 @@ type Cluster struct {
 	Common
 
 	ResourceID int64    `json:"-"`
-	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"metadata"`
+	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"Metadata"`
+	ApiServer  string
 }
 
 func (c *Cluster) SetResourceType(s string) {

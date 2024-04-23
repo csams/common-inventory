@@ -3,10 +3,10 @@ package models
 type Resource struct {
 	Common
 
-	Href         string `gorm:"href" json:"href"`
-	DisplayName  string `gorm:"display_name" json:"display_name"`
-	Reporter     string `gorm:"reporter" json:"reporter"`
-	ResourceType string `gorm:"resource_type" json:"resource_type"`
+	Href         string
+	DisplayName  string
+	Reporter     string
+	ResourceType string
 }
 
 func (r *Resource) SetResourceType(s string) {
