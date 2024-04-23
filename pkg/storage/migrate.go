@@ -9,6 +9,9 @@ import (
 // Migrate the schemas
 // See https://gorm.io/docs/migration.html
 func Migrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&models.Resource{}); err != nil {
+		return err
+	}
 	if err := db.AutoMigrate(&models.Host{}); err != nil {
 		return err
 	}
