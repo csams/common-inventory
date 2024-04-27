@@ -1,29 +1,36 @@
 package models
 
+import (
+	"time"
+)
+
+// ClusterIn is part of REST API
+type ClusterIn struct {
+	Metadata ResourceIn
+	ClusterCommon
+}
+
+// ClusterOut is part of REST API
+type ClusterOut struct {
+	Metadata ResourceOut
+	ClusterCommon
+}
+
+// Cluster is part of the database model
 type Cluster struct {
-	Common
+	ClusterCommon
 
-	ResourceID int64    `json:"-"`
+	ID        IDType    `gorm:"primaryKey" json:"-"` // don't send this in the REST API
+	CreatedAt time.Time `json:"-"`                   // don't send this in the REST API
+	UpdatedAt time.Time `json:"-"`                   // don't send this in the REST API
+
+	ResourceID IDType   `json:"-"` // don't send this in the REST API
 	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE"`
-	ApiServer  string
 }
 
-func (c *Cluster) SetResourceType(s string) {
-	c.Metadata.ResourceType = s
-}
-
-func (c *Cluster) GetResourceType() string {
-	return c.Metadata.ResourceType
-}
-
-func (c *Cluster) SetHref(s string) {
-	c.Metadata.Href = s
-}
-
-func (c *Cluster) GetHref() string {
-	return c.Metadata.Href
-}
-
-func (c *Cluster) GetId() int64 {
-	return c.ID
+// ClusterCommon is common to the REST API and the database model
+type ClusterCommon struct {
+	ExternalClusterId string
+	CloudProviderId   string
+	ApiServer         string
 }

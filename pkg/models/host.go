@@ -1,11 +1,35 @@
 package models
 
+import (
+	"time"
+)
+
+// HostIn is part of the REST API
+type HostIn struct {
+	Metadata ResourceIn
+	HostCommon
+}
+
+// HostOut is part of the REST API
+type HostOut struct {
+	Metadata ResourceOut
+	HostCommon
+}
+
+// Host is the database model
 type Host struct {
-	Common
+	HostCommon
 
-	ResourceID int64    `json:"-"`
+	ID        IDType    `gorm:"primaryKey" json:"-"` // don't send this in the REST API
+	CreatedAt time.Time `json:"-"`                   // don't send this in the REST API
+	UpdatedAt time.Time `json:"-"`                   // don't send this in the REST API
+
+	ResourceID IDType   `json:"-"` // don't send this in the REST API
 	Metadata   Resource `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE"`
+}
 
+// HostCommon is common to the REST API and the database model
+type HostCommon struct {
 	BiosUuid              string
 	Fqdn                  string
 	InsightsId            string
@@ -13,24 +37,4 @@ type Host struct {
 	ProviderType          string
 	SatelliteId           string
 	SubscriptionManagerId string
-}
-
-func (h *Host) SetResourceType(s string) {
-	h.Metadata.ResourceType = s
-}
-
-func (h *Host) GetResourceType() string {
-	return h.Metadata.ResourceType
-}
-
-func (h *Host) SetHref(s string) {
-	h.Metadata.Href = s
-}
-
-func (h *Host) GetHref() string {
-	return h.Metadata.Href
-}
-
-func (h *Host) GetId() int64 {
-	return h.ID
 }

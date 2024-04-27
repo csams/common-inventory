@@ -1,4 +1,4 @@
-package controllers
+package middleware
 
 import (
 	"context"
@@ -73,10 +73,6 @@ func PaginationRequestFromContext(ctx context.Context) (*PaginationRequest, erro
 		return nil, errors.New("Object stored in request context couldn't convert to *PaginationRequest")
 	}
 	return req, nil
-}
-
-type contextKey struct {
-	name string
 }
 
 var PaginationRequestKey = &contextKey{"paginationRequest"}
