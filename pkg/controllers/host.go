@@ -43,7 +43,7 @@ func (c HostController) Routes() chi.Router {
 }
 
 func (c *HostController) List(w http.ResponseWriter, r *http.Request) {
-	pagination, err := middleware.PaginationRequestFromContext(r.Context())
+	pagination, err := middleware.GetPaginationRequest(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -87,7 +87,7 @@ func (c *HostController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.ReporterFromContext(r.Context())
+	reporter, err := middleware.GetReporter(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -105,9 +105,10 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 		ResourceType: "linux-host",
 		Reporters: []models.Reporter{
 			{
-				Name: reporter.Name,
-				Type: reporter.Type,
-				URL:  reporter.URL,
+				Name:               reporter.Name,
+				Type:               reporter.Type,
+				URL:                reporter.URL,
+				ReporterInstanceId: reporter.ReporterInstanceId,
 
 				Created: input.Metadata.ReporterTime,
 				Updated: input.Metadata.ReporterTime,
@@ -161,7 +162,7 @@ func (c *HostController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HostController) Update(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.ReporterFromContext(r.Context())
+	reporter, err := middleware.GetReporter(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

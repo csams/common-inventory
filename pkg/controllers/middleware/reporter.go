@@ -6,10 +6,13 @@ import (
 	"net/http"
 )
 
+var ReporterRequestKey = &contextKey{"reporterRequest"}
+
 type ReporterRequest struct {
-    Name string
-    Type string
-    URL string
+	Name               string
+	ReporterInstanceId string
+	Type               string
+	URL                string
 }
 
 // Reporter is part of some auth story.  We'll pull a token out of somewhere, validate it, and extract some
@@ -17,20 +20,21 @@ type ReporterRequest struct {
 func Reporter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-        // placeholder logic
-        ua := r.Header.Get("User-Agent")
-        reporterRequest := &ReporterRequest{
-            Name: ua,
-            Type: ua,
-            URL: "",
-        }
+		// placeholder logic
+		ua := r.Header.Get("User-Agent")
+		reporterRequest := &ReporterRequest{
+			Name:               ua,
+			ReporterInstanceId: ua,
+			Type:               ua,
+			URL:                ua,
+		}
 
 		ctx := context.WithValue(r.Context(), ReporterRequestKey, reporterRequest)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func ReporterFromContext(ctx context.Context) (*ReporterRequest, error) {
+func GetReporter(ctx context.Context) (*ReporterRequest, error) {
 	obj := ctx.Value(ReporterRequestKey)
 	if obj == nil {
 		return nil, errors.New("Expected ReporterRequest")
@@ -41,5 +45,3 @@ func ReporterFromContext(ctx context.Context) (*ReporterRequest, error) {
 	}
 	return req, nil
 }
-
-var ReporterRequestKey = &contextKey{"reporterRequest"}

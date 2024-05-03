@@ -41,7 +41,7 @@ func (c ResourceController) Routes() chi.Router {
 }
 
 func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
-	pagination, err := middleware.PaginationRequestFromContext(r.Context())
+	pagination, err := middleware.GetPaginationRequest(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -99,9 +99,9 @@ func (c *ResourceController) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    out := models.ResourceOut{
-        Resource: model,
-        Href:     fmt.Sprintf("/api/inventory/v1.0/resources/%d", model.ID),
-    }
+	out := models.ResourceOut{
+		Resource: model,
+		Href:     fmt.Sprintf("/api/inventory/v1.0/resources/%d", model.ID),
+	}
 	render.JSON(w, r, out)
 }

@@ -43,7 +43,7 @@ func (c ClusterController) Routes() chi.Router {
 }
 
 func (c *ClusterController) List(w http.ResponseWriter, r *http.Request) {
-	pagination, err := middleware.PaginationRequestFromContext(r.Context())
+	pagination, err := middleware.GetPaginationRequest(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -67,7 +67,7 @@ func (c *ClusterController) List(w http.ResponseWriter, r *http.Request) {
 	var output []models.ClusterOut
 	for _, r := range results {
 		out := models.ClusterOut{
-			Metadata:   models.ResourceOut{Resource: r.Metadata},
+			Metadata:      models.ResourceOut{Resource: r.Metadata},
 			ClusterCommon: r.ClusterCommon,
 		}
 		out.Metadata.Href = fmt.Sprintf("/api/inventory/v1.0/hosts/%d", r.ID)
@@ -87,7 +87,7 @@ func (c *ClusterController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.ReporterFromContext(r.Context())
+	reporter, err := middleware.GetReporter(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -106,9 +106,10 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 			ResourceType: "linux-host",
 			Reporters: []models.Reporter{
 				{
-					Name: reporter.Name,
-					Type: reporter.Type,
-					URL:  reporter.URL,
+					Name:               reporter.Name,
+					Type:               reporter.Type,
+					URL:                reporter.URL,
+					ReporterInstanceId: reporter.ReporterInstanceId,
 
 					Created: input.Metadata.ReporterTime,
 					Updated: input.Metadata.ReporterTime,
@@ -124,7 +125,7 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out := &models.ClusterOut{
-		Metadata:   models.ResourceOut{Resource: model.Metadata},
+		Metadata:      models.ResourceOut{Resource: model.Metadata},
 		ClusterCommon: model.ClusterCommon,
 	}
 	out.Metadata.Href = fmt.Sprintf("/api/inventory/v1.0/clusters/%d", model.ID)
@@ -150,7 +151,7 @@ func (c *ClusterController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	out := models.ClusterOut{
-		Metadata:   models.ResourceOut{Resource: model.Metadata},
+		Metadata:      models.ResourceOut{Resource: model.Metadata},
 		ClusterCommon: model.ClusterCommon,
 	}
 
@@ -159,7 +160,7 @@ func (c *ClusterController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ClusterController) Update(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.ReporterFromContext(r.Context())
+	reporter, err := middleware.GetReporter(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

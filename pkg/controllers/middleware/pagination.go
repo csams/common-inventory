@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var PaginationRequestKey = &contextKey{"paginationRequest"}
+
 type PagedReponseMetadata struct {
 	Page  int   `json:"page"`
 	Size  int   `json:"size"`
@@ -63,7 +65,7 @@ func Pagination(next http.Handler) http.Handler {
 	})
 }
 
-func PaginationRequestFromContext(ctx context.Context) (*PaginationRequest, error) {
+func GetPaginationRequest(ctx context.Context) (*PaginationRequest, error) {
 	obj := ctx.Value(PaginationRequestKey)
 	if obj == nil {
 		return nil, errors.New("Expected PaginationRequest")
@@ -74,5 +76,3 @@ func PaginationRequestFromContext(ctx context.Context) (*PaginationRequest, erro
 	}
 	return req, nil
 }
-
-var PaginationRequestKey = &contextKey{"paginationRequest"}
