@@ -65,15 +65,15 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 		prefix = prefix + "."
 	}
 
-	fs.String(prefix+"host", o.Host, "Name of host to connect to.")
-	fs.String(prefix+"port", o.Port, "Port number to connect to at the server host, or socket file name extension for Unix-domain connections.")
-	fs.String(prefix+"dbname", o.DbName, "The database name. Defaults to be the same as the user name.")
-	fs.String(prefix+"user", o.User, "PostgreSQL user name to connect as. Defaults to be the same as the operating system name of the user running the application.")
-	fs.String(prefix+"password", o.Password, "Password to be used if the server demands password authentication.")
-	fs.String(prefix+"sslmode", o.SSLMode, "This option determines whether or with what priority a secure SSL TCP/IP connection will be negotiated with the server. See https://www.postgresql.org/docs/16/libpq-connect.html#LIBPQ-CONNECT-SSLMODE")
-	fs.String(prefix+"sslrootcert", o.SSLRootCert, "This parameter specifies the name of a file containing SSL certificate authority (CA) certificate(s). If the file exists, the server's certificate will be verified to be signed by one of these authorities. The default is ~/.postgresql/root.crt. The special value system may be specified instead, in which case the system's trusted CA roots will be loaded. The exact locations of these root certificates differ by SSL implementation and platform. For OpenSSL in particular, the locations may be further modified by the SSL_CERT_DIR and SSL_CERT_FILE environment variables.")
+	fs.StringVar(&o.Host, prefix+"host", o.Host, "Name of host to connect to.")
+	fs.StringVar(&o.Port, prefix+"port", o.Port, "Port number to connect to at the server host, or socket file name extension for Unix-domain connections.")
+	fs.StringVar(&o.DbName, prefix+"dbname", o.DbName, "The database name. Defaults to be the same as the user name.")
+	fs.StringVar(&o.User, prefix+"user", o.User, "PostgreSQL user name to connect as. Defaults to be the same as the operating system name of the user running the application.")
+	fs.StringVar(&o.Password, prefix+"password", o.Password, "Password to be used if the server demands password authentication.")
+	fs.StringVar(&o.SSLMode, prefix+"sslmode", o.SSLMode, "This option determines whether or with what priority a secure SSL TCP/IP connection will be negotiated with the server. See https://www.postgresql.org/docs/16/libpq-connect.html#LIBPQ-CONNECT-SSLMODE")
+	fs.StringVar(&o.SSLRootCert, prefix+"sslrootcert", o.SSLRootCert, "This parameter specifies the name of a file containing SSL certificate authority (CA) certificate(s). If the file exists, the server's certificate will be verified to be signed by one of these authorities. The default is ~/.postgresql/root.crt. The special value system may be specified instead, in which case the system's trusted CA roots will be loaded. The exact locations of these root certificates differ by SSL implementation and platform. For OpenSSL in particular, the locations may be further modified by the SSL_CERT_DIR and SSL_CERT_FILE environment variables.")
 
-	fs.StringToString(prefix+"extra", o.Extra, "Additional options passed as comma separated name=value pairs. See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS")
+	fs.StringToStringVar(&o.Extra, prefix+"extra", o.Extra, "Additional options passed as comma separated name=value pairs. See https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS")
 }
 
 func (o *Options) Complete() error {

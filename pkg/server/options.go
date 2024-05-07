@@ -23,9 +23,9 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 		prefix = prefix + "."
 	}
 
-	fs.String(prefix+"address", o.Address, "the host and port on which to listen")
-	fs.String(prefix+"certfile", o.CertFile, "the file containing the server's serving certificate")
-	fs.String(prefix+"keyfile", o.KeyFile, "the file containing the server's private key for the serving cert")
+	fs.StringVar(&o.Address, prefix+"address", o.Address, "the host and port on which to listen")
+	fs.StringVar(&o.CertFile, prefix+"certfile", o.CertFile, "the file containing the server's serving certificate")
+	fs.StringVar(&o.KeyFile, prefix+"keyfile", o.KeyFile, "the file containing the server's private key for the serving cert")
 }
 
 func (o *Options) Complete() error {

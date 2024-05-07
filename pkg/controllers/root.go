@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewHandler(db *gorm.DB, log *slog.Logger) chi.Router {
+func NewRootHandler(db *gorm.DB, log *slog.Logger) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)

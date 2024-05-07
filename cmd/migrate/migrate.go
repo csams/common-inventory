@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/csams/common-inventory/pkg/errors"
+	"github.com/csams/common-inventory/pkg/models"
 	"github.com/csams/common-inventory/pkg/storage"
 )
 
@@ -29,10 +30,11 @@ func NewCommand(options *storage.Options, log *slog.Logger) *cobra.Command {
 				return err
 			}
 
-			return storage.Migrate(db)
+			return models.Migrate(db)
 		},
 	}
 
 	options.AddFlags(cmd.Flags(), "storage")
+
 	return cmd
 }

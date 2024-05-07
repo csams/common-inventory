@@ -16,15 +16,16 @@ import (
 )
 
 var (
-	version = "0.1.0"
-	cfgFile string
+	version     = "0.1.0"
+	programName = "common-inventory"
+	cfgFile     string
 
 	logLevel   = new(slog.LevelVar) // Info by default
 	logOptions = &slog.HandlerOptions{Level: logLevel}
 	rootLog    = slog.New(slog.NewJSONHandler(os.Stderr, logOptions))
 
 	rootCmd = &cobra.Command{
-		Use:     "common-inventory",
+		Use:     programName,
 		Version: version,
 		Short:   "A simple common inventory system",
 	}
@@ -52,7 +53,8 @@ func init() {
 	// initializers are run as part of Command.PreRun
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $PWD/.common-inventory.yaml)")
+	configHelp := fmt.Sprintf("config file (default is $PWD/.%s.yaml)", programName)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", configHelp)
 	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 
 	migrateCmd := migrate.NewCommand(options.Storage, rootLog.WithGroup("storage"))
@@ -75,10 +77,12 @@ func initConfig() {
 		viper.AddConfigPath(".")
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".common-inventory")
+
+		configName := fmt.Sprintf(".%s", programName)
+		viper.SetConfigName(configName)
 	}
 
-	viper.SetEnvPrefix("inventory")
+	viper.SetEnvPrefix(programName)
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err == nil {
@@ -86,6 +90,6 @@ func initConfig() {
 		rootLog.Debug(msg)
 	}
 
-	// put the values into the options struct
+	// put the values into the options struct.
 	viper.Unmarshal(&options)
 }

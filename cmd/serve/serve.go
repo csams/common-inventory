@@ -16,6 +16,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 		Use:   "serve",
 		Short: "Start the inventory server",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// configure storage
 			if err := storageOptions.Complete(); err != nil {
 				return err
 			}
@@ -26,11 +27,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 
 			storageConfig := storage.NewConfig(storageOptions).Complete()
 
-			db, err := storage.New(storageConfig)
-			if err != nil {
-				return err
-			}
-
+			// configure the server
 			if err := serverOptions.Complete(); err != nil {
 				return err
 			}
@@ -41,8 +38,15 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 
 			serverConfig := server.NewConfig(serverOptions).Complete()
 
-			handler := controllers.NewHandler(db, log)
-			server, err := server.New(serverConfig, handler, log)
+			// bring up storage
+			db, err := storage.New(storageConfig)
+			if err != nil {
+				return err
+			}
+
+			// bring up the server
+			rootHandler := controllers.NewRootHandler(db, log)
+			server, err := server.New(serverConfig, rootHandler, log)
 			if err != nil {
 				return err
 			}

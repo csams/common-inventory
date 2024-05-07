@@ -17,7 +17,7 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 		prefix = prefix + "."
 	}
 
-	fs.String(prefix+"dsn", o.DSN, "The connection string to use for sqlite3.")
+	fs.StringVar(&o.DSN, prefix+"dsn", o.DSN, "The connection string to use for sqlite3.")
 }
 
 func (o *Options) Complete() error {

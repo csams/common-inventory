@@ -27,7 +27,7 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 		prefix = prefix + "."
 	}
 
-	fs.String(prefix+"database", o.Database, "The database type to use.  Either sqlite3 or postgres.")
+	fs.StringVar(&o.Database, prefix+"database", o.Database, "The database type to use.  Either sqlite3 or postgres.")
 
 	o.Postgres.AddFlags(fs, prefix+"postgres")
 	o.SqlLite3.AddFlags(fs, prefix+"sqlite3")
