@@ -103,7 +103,7 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 		Metadata: models.Resource{
 			DisplayName:  input.Metadata.DisplayName,
 			Tags:         input.Metadata.Tags,
-			ResourceType: "linux-host",
+			ResourceType: "k8s-cluster",
 			Reporters: []models.Reporter{
 				{
 					Name:               reporter.Name,
@@ -141,7 +141,7 @@ func (c *ClusterController) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var model models.Cluster
-	if err := c.Db.Preload("Metadata.Tags", "Metadata.Reporters").First(&model, id).Error; err != nil {
+	if err := c.Db.Preload("Metadata.Reporters").Preload("Metadata.Tags").First(&model, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
@@ -178,7 +178,7 @@ func (c *ClusterController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var model models.Cluster
-	if err := c.Db.Preload("Metadata.Tags", "Metadata.Reporters").First(&model, id).Error; err != nil {
+	if err := c.Db.Preload("Metadata.Reporters").Preload("Metadata.Reporters").First(&model, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {

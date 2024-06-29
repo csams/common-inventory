@@ -15,8 +15,8 @@ type ReporterRequest struct {
 	URL                string
 }
 
-// Reporter is part of some auth story.  We'll pull a token out of somewhere, validate it, and extract some
-// reporter information.
+// Reporter is part of some auth story.  We'll pull a token out of somewhere, validate it, and extract
+// reporter information from it and maybe the local database.
 func Reporter(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

@@ -58,6 +58,8 @@ type Reporter struct {
 
 	ConsoleHref     string
 	ApiHref         string
+
+    // This is the primary key assigned to the resource *by the reporter*.
 	ResourceIdAlias string
 }
 

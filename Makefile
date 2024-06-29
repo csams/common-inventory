@@ -5,7 +5,7 @@ SHELL := /usr/bin/env bash -e
 default: build ;
 
 .PHONY: build
-build: require-go ## build the thing
+build: require-go ## build the common-inventory binary
 	go mod tidy
 	go build -o ./bin/common-inventory main.go
 
@@ -23,5 +23,5 @@ require-%:
 	@if ! command -v $* 1> /dev/null 2>&1; then echo "$* not found in \$$PATH"; exit 1; fi
 
 .PHONY: help
-help: ## Show this help.
+help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

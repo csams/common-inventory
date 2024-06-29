@@ -26,6 +26,7 @@ func New(c CompletedConfig, handler http.Handler, log *slog.Logger) (*Server, er
 	}, nil
 }
 
+// PrepareRun should do any last minute setup before starting the server
 func (s *Server) PrepareRun() preparedServer {
 	return preparedServer{s}
 }
