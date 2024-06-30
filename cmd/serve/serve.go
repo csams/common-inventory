@@ -36,7 +36,10 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return errors.NewAggregate(errs)
 			}
 
-			serverConfig := server.NewConfig(serverOptions).Complete()
+			serverConfig, err := server.NewConfig(serverOptions).Complete()
+			if err != nil {
+				return err
+			}
 
 			// bring up storage
 			db, err := storage.New(storageConfig)
@@ -46,7 +49,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 
 			// bring up the server
 			rootHandler := controllers.NewRootHandler(db, log)
-			server, err := server.New(serverConfig, rootHandler, log)
+			server := server.New(serverConfig, rootHandler, log)
 			if err != nil {
 				return err
 			}

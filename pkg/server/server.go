@@ -4,39 +4,50 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type Server struct {
-	CompletedConfig
+	SecureServing bool
 
-	Handler http.Handler
-	Log     *slog.Logger
+	ServingCertFile string
+	PrivateKeyFile  string
+
+	HttpServer *http.Server
+	Log        *slog.Logger
 }
 
-// Only a preparedServer can be Run
 type preparedServer struct {
 	*Server
 }
 
-func New(c CompletedConfig, handler http.Handler, log *slog.Logger) (*Server, error) {
+func New(c CompletedConfig, handler http.Handler, log *slog.Logger) *Server {
 	return &Server{
-		CompletedConfig: c,
-		Handler:         handler,
-		Log:             log,
-	}, nil
+		HttpServer: &http.Server{
+			Addr:         c.Options.Addr,
+			ReadTimeout:  time.Duration(c.Options.ReadTimeout) * time.Second,
+			WriteTimeout: time.Duration(c.Options.WriteTimeout) * time.Second,
+			TLSConfig:    c.TLSConfig,
+			Handler:      handler,
+		},
+		Log: log,
+	}
 }
 
 // PrepareRun should do any last minute setup before starting the server
 func (s *Server) PrepareRun() preparedServer {
-	return preparedServer{s}
+	return preparedServer{
+		Server: s,
+	}
 }
 
+// Only a preparedServer can be Run, so we can't start an incorrectly configured server
 func (s preparedServer) Run() error {
-	s.Log.Info(fmt.Sprintf("Listening on address %s", s.Options.Address))
+	s.Log.Info(fmt.Sprintf("Listening on address %s", s.HttpServer.Addr))
 
 	if s.SecureServing {
-		return http.ListenAndServeTLS(s.Options.Address, s.Options.CertFile, s.Options.KeyFile, s.Handler)
+		return s.HttpServer.ListenAndServeTLS(s.ServingCertFile, s.PrivateKeyFile)
 	}
 
-	return http.ListenAndServe(s.Options.Address, s.Handler)
+	return s.HttpServer.ListenAndServe()
 }
