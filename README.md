@@ -1,8 +1,16 @@
 # Common Inventory
-
-This repository explores designs for a common inventory system.
+This repository explores designs for a common inventory system.  The models and even behavior in it are
+currently wrong, but it provides a place to start and sketches some ideas.
 
 Run `make build` and then `./bin/common-inventory help`.
+
+Also try `./bin/comment-inventory serve help`
+
+Completion is available:
+
+```
+/bin/common-inventory completion bash | source
+```
 
 You can set options on the command line, with [environment variables](https://pkg.go.dev/github.com/spf13/viper@v1.18.2#AutomaticEnv), or with a `.common-inventory.yaml` configuration file.
 
@@ -29,14 +37,14 @@ Then run `./bin/common-inventory serve`
 In a separate terminal, run
 
 ```bash
-❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Host", "Reporter": "robot"}, "Fqdn": "www.example.com"}' http://localhost:9080/api/v1.0/hosts/
-❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Cluster", "Reporter": "robot"}, "ApiServer": "my.k8s.cluster.com"}' http://localhost:9080/api/v1.0/clusters/
+curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Cluster"}, "ApiServer": "www.example.com/api-server"}' http://localhost:9080/api/inventory/v1.0/k8s-clusters
+curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Host"}, "Fqdn": "www.example.com"}' http://localhost:9080/api/inventory/v1.0/linux-hosts
 ```
 
 Then run
 
 ```bash
-❯ curl '127.0.0.1:9080/api/v1.0/hosts' | jq .
-❯ curl '127.0.0.1:9080/api/v1.0/clusters' | jq .
-❯ curl '127.0.0.1:9080/api/v1.0/resources' | jq .
+curl '127.0.0.1:9080/api/v1.0/linux-hosts' | jq .
+curl '127.0.0.1:9080/api/v1.0/k8s-clusters' | jq .
+curl '127.0.0.1:9080/api/v1.0/resources' | jq .
 ```

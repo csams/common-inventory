@@ -34,7 +34,7 @@ type Resource struct {
 	ResourceType string `gorm:"not null"`
 	Workspace    string
 
-	Reporters []Reporter
+    Reporters []Reporter `gorm:"many2many:resource_reporters"`
 	Tags      []ResourceTag
 }
 
@@ -47,10 +47,6 @@ type Reporter struct {
 	// lower inventory can update these fields indirectly through ResourceIn.ReporterTime.
 	Created time.Time `json:"CreatedAt"`
 	Updated time.Time `json:"LastUpdatedAt"`
-
-	// A Resource may have many Reporters.
-	// This tells GORM to set up a "has many" relationship from the Resource side.
-	ResourceID IDType `json:"-"` // don't expose the ResourceID in the REST API
 
 	Type string `gorm:"not null"`
 	URL  string `gorm:"not null"`

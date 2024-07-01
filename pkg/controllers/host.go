@@ -102,7 +102,7 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := models.Host{
+	model := &models.Host{
 		Metadata: models.Resource{
 			DisplayName:  input.Metadata.DisplayName,
 			Tags:         input.Metadata.Tags,
@@ -121,16 +121,18 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 		HostCommon: input.HostCommon,
 	}
 
-	if err := c.Db.Session(&gorm.Session{FullSaveAssociations: true}).Create(&model).Error; err != nil {
+	if err := c.Db.Create(model).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// TODO: handle eventing errors
+	// TODO: Update the Object that's sent.  This is going to be what we actually emit.
 	producer, _ := c.EventingManager.Lookup(identity, "linux-host", model.ID)
 	evt := &eventingapi.Event[*models.Host]{
 		EventType:    "Create",
 		ResourceType: "linux-host",
-		Object:       &model,
+		Object:       model,
 	}
 	producer.Produce(evt)
 
