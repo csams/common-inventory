@@ -8,6 +8,7 @@ import (
 	"github.com/csams/common-inventory/pkg/authn"
 	"github.com/csams/common-inventory/pkg/controllers"
 	"github.com/csams/common-inventory/pkg/errors"
+	"github.com/csams/common-inventory/pkg/eventing"
 	"github.com/csams/common-inventory/pkg/server"
 	"github.com/csams/common-inventory/pkg/storage"
 )
@@ -68,8 +69,10 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return err
 			}
 
+            eventingManager := eventing.New()
+
 			// bring up the server
-			rootHandler := controllers.NewRootHandler(db, authenticator, log)
+			rootHandler := controllers.NewRootHandler(db, authenticator, eventingManager, log)
 			server := server.New(serverConfig, rootHandler, log)
 			if err != nil {
 				return err
