@@ -19,19 +19,15 @@ type OAuth2Authenticator struct {
 }
 
 func New(c CompletedConfig) (*OAuth2Authenticator, error) {
-	ctx := context.Background()
-
 	// this allows us to test locally against KeyCloak or something using an http client that doesn't check
 	// serving certs
-	ctx = coreosoidc.ClientContext(ctx, c.Client)
-
-	oidcConfig := &coreosoidc.Config{ClientID: c.ClientId}
-
+	ctx := coreosoidc.ClientContext(context.Background(), c.Client)
 	provider, err := coreosoidc.NewProvider(ctx, c.AuthorizationServerURL)
 	if err != nil {
 		return nil, err
 	}
 
+	oidcConfig := &coreosoidc.Config{ClientID: c.ClientId}
 	return &OAuth2Authenticator{
 		CompletedConfig: c,
 		ClientContext:   ctx,
