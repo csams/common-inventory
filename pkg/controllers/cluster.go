@@ -32,11 +32,11 @@ func (c ClusterController) Routes() chi.Router {
 	r := chi.NewRouter()
 
 	r.With(middleware.Pagination).Get("/", c.List)
-	r.With(middleware.Reporter).Post("/", c.Create)
+	r.Post("/", c.Create)
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", c.Get)
-		r.With(middleware.Reporter).Put("/", c.Update)
-		r.With(middleware.Reporter).Delete("/", c.Delete)
+		r.Put("/", c.Update)
+		r.Delete("/", c.Delete)
 	})
 
 	return r
@@ -87,7 +87,7 @@ func (c *ClusterController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.GetReporter(r.Context())
+	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -106,10 +106,10 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 			ResourceType: "k8s-cluster",
 			Reporters: []models.Reporter{
 				{
-					Name:               reporter.Name,
-					Type:               reporter.Type,
-					URL:                reporter.URL,
-					ReporterInstanceId: reporter.ReporterInstanceId,
+					Name:               identity.Principal,
+					Type:               identity.Type,
+					URL:                identity.Href,
+					ReporterInstanceId: input.Metadata.ReporterInstanceId,
 
 					Created: input.Metadata.ReporterTime,
 					Updated: input.Metadata.ReporterTime,
@@ -160,7 +160,7 @@ func (c *ClusterController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *ClusterController) Update(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.GetReporter(r.Context())
+	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -193,7 +193,7 @@ func (c *ClusterController) Update(w http.ResponseWriter, r *http.Request) {
 
 	model.ClusterCommon = input.ClusterCommon
 	for _, r := range model.Metadata.Reporters {
-		if r.Name == reporter.Name {
+		if r.Name == identity.Principal {
 			r.Updated = input.Metadata.ReporterTime
 		}
 	}

@@ -10,10 +10,11 @@ type ResourceIn struct {
 	// Allow reporters to specify when something was created or updated.  Don't allow them to have control
 	// over announcing their type or Id.  Reporter type and Id should be derived or otherwise communicated
 	// from a signed token.
-	ReporterTime    time.Time
-	ConsoleHref     string
-	ApiHref         string
-	ResourceIdAlias string
+	ReporterTime       time.Time
+	ReporterInstanceId string
+	ConsoleHref        string
+	ApiHref            string
+	ResourceIdAlias    string
 
 	Tags []ResourceTag
 }
@@ -56,10 +57,10 @@ type Reporter struct {
 	Type               string `gorm:"not null"`
 	URL                string `gorm:"not null"`
 
-	ConsoleHref     string
-	ApiHref         string
+	ConsoleHref string
+	ApiHref     string
 
-    // This is the primary key assigned to the resource *by the reporter*.
+	// This is the primary key assigned to the resource *by the reporter*.
 	ResourceIdAlias string
 }
 

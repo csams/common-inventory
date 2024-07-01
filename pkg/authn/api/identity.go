@@ -4,10 +4,12 @@ package api
 type Identity struct {
 	Tenant string `yaml:"tenant"`
 
-	Principcal string   `yaml:"principal"`
+	Principal string   `yaml:"principal"`
 	Groups     []string `yaml:"groups"`
 
 	// TODO: If we explicitly represent reporters in the database, do we need to distinguish them when they authenticate?
-	IsReporter bool `yaml:"is_reporter"`
-	IsGuest    bool `yaml:"is_guest"`
+	IsReporter bool   `yaml:"is_reporter"`
+	Type       string `yaml:"type"`
+	Href       string `yaml:"href"`
+	IsGuest    bool   `yaml:"is_guest"`
 }

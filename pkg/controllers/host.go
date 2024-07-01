@@ -32,11 +32,11 @@ func (c HostController) Routes() chi.Router {
 	r := chi.NewRouter()
 
 	r.With(middleware.Pagination).Get("/", c.List)
-	r.With(middleware.Reporter).Post("/", c.Create)
+	r.Post("/", c.Create)
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", c.Get)
-		r.With(middleware.Reporter).Put("/", c.Update)
-		r.With(middleware.Reporter).Delete("/", c.Delete)
+		r.Put("/", c.Update)
+		r.Delete("/", c.Delete)
 	})
 
 	return r
@@ -87,7 +87,7 @@ func (c *HostController) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.GetReporter(r.Context())
+	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -99,25 +99,23 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metadata := models.Resource{
-		DisplayName:  input.Metadata.DisplayName,
-		Tags:         input.Metadata.Tags,
-		ResourceType: "linux-host",
-		Reporters: []models.Reporter{
-			{
-				Name:               reporter.Name,
-				Type:               reporter.Type,
-				URL:                reporter.URL,
-				ReporterInstanceId: reporter.ReporterInstanceId,
+	model := models.Host{
+		Metadata: models.Resource{
+			DisplayName:  input.Metadata.DisplayName,
+			Tags:         input.Metadata.Tags,
+			ResourceType: "linux-host",
+			Reporters: []models.Reporter{
+				{
+					Name:               identity.Principal,
+					Type:               identity.Type,
+					URL:                identity.Href,
+					ReporterInstanceId: input.Metadata.ReporterInstanceId,
 
-				Created: input.Metadata.ReporterTime,
-				Updated: input.Metadata.ReporterTime,
+					Created: input.Metadata.ReporterTime,
+					Updated: input.Metadata.ReporterTime,
+				},
 			},
 		},
-	}
-
-	model := models.Host{
-		Metadata:   metadata,
 		HostCommon: input.HostCommon,
 	}
 
@@ -162,7 +160,7 @@ func (c *HostController) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *HostController) Update(w http.ResponseWriter, r *http.Request) {
-	reporter, err := middleware.GetReporter(r.Context())
+	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -195,7 +193,7 @@ func (c *HostController) Update(w http.ResponseWriter, r *http.Request) {
 
 	model.HostCommon = input.HostCommon
 	for _, r := range model.Metadata.Reporters {
-		if r.Name == reporter.Name {
+		if r.Name == identity.Principal {
 			r.Updated = input.Metadata.ReporterTime
 		}
 	}

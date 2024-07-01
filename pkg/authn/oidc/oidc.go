@@ -68,7 +68,7 @@ func (o *OAuth2Authenticator) Authenticate(r *http.Request) (*api.Identity, api.
 	}
 
     // TODO: What are the tenant and group claims?
-    return &api.Identity{ Principcal: u.Id }, api.Allow
+    return &api.Identity{ Principal: u.Id }, api.Allow
 }
 
 // TODO: make JWT claim fields configurable

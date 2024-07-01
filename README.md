@@ -29,14 +29,14 @@ Then run `./bin/common-inventory serve`
 In a separate terminal, run
 
 ```bash
-❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Host", "Reporter": "robot"}, "Fqdn": "www.example.com"}' http://localhost:9080/api/v1/hosts/
-❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Cluster", "Reporter": "robot"}, "ApiServer": "my.k8s.cluster.com"}' http://localhost:9080/api/v1/clusters/
+❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Host", "Reporter": "robot"}, "Fqdn": "www.example.com"}' http://localhost:9080/api/v1.0/hosts/
+❯ curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Cluster", "Reporter": "robot"}, "ApiServer": "my.k8s.cluster.com"}' http://localhost:9080/api/v1.0/clusters/
 ```
 
 Then run
 
 ```bash
-❯ curl '127.0.0.1:9080/api/v1/hosts' | jq .
-❯ curl '127.0.0.1:9080/api/v1/clusters' | jq .
-❯ curl '127.0.0.1:9080/api/v1/resources' | jq .
+❯ curl '127.0.0.1:9080/api/v1.0/hosts' | jq .
+❯ curl '127.0.0.1:9080/api/v1.0/clusters' | jq .
+❯ curl '127.0.0.1:9080/api/v1.0/resources' | jq .
 ```

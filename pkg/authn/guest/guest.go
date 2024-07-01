@@ -17,7 +17,7 @@ func (a *GuestAuthenticator) Authenticate(r *http.Request) (*api.Identity, api.D
     // TODO: should we use something else? ip address?
     ua := r.Header.Get("User-Agent")
     identity := &api.Identity{
-        Principcal: ua,
+        Principal: ua,
         IsGuest: true,
     }
 
