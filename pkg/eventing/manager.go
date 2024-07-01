@@ -8,15 +8,15 @@ import (
 )
 
 type EventingManager struct {
-    Producer api.Producer
+	Producer api.Producer
 }
 
 func New() *EventingManager {
-    return &EventingManager{
-        Producer: stdout.New(),
-    }
+	return &EventingManager{
+		Producer: stdout.New(),
+	}
 }
 
 func (m *EventingManager) Lookup(identity *authnapi.Identity, resourceType string, resourceId models.IDType) (api.Producer, error) {
-    return m.Producer, nil
+	return m.Producer, nil
 }

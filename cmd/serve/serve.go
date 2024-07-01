@@ -69,7 +69,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return err
 			}
 
-            eventingManager := eventing.New()
+			eventingManager := eventing.New()
 
 			// bring up the server
 			rootHandler := controllers.NewRootHandler(db, authenticator, eventingManager, log)

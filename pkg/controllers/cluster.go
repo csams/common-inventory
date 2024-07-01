@@ -18,16 +18,16 @@ import (
 )
 
 type ClusterController struct {
-	Db  *gorm.DB
+	Db              *gorm.DB
 	EventingManager eventingapi.Manager
-	Log *slog.Logger
+	Log             *slog.Logger
 }
 
 func NewClusterController(db *gorm.DB, eventingManager eventingapi.Manager, log *slog.Logger) *ClusterController {
 	return &ClusterController{
-		Db:  db,
-        EventingManager: eventingManager,
-		Log: log,
+		Db:              db,
+		EventingManager: eventingManager,
+		Log:             log,
 	}
 }
 
@@ -126,13 +126,15 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", model.ID)
-    evt := &eventingapi.Event[*models.Cluster]{
-        EventType: "Create",
-        ResourceType: "k8s-cluster",
-        Object: model,
-    }
-    producer.Produce(evt)
+	// TODO: handle eventing errors
+	// TODO: Update the Object that's sent.  This is going to be what we actually emit.
+	producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", model.ID)
+	evt := &eventingapi.Event[*models.Cluster]{
+		EventType:    "Create",
+		ResourceType: "k8s-cluster",
+		Object:       model,
+	}
+	producer.Produce(evt)
 
 	out := &models.ClusterOut{
 		Metadata:      models.ResourceOut{Resource: model.Metadata},
@@ -213,13 +215,13 @@ func (c *ClusterController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", model.ID)
-    evt := &eventingapi.Event[*models.Cluster]{
-        EventType: "Update",
-        ResourceType: "k8s-cluster",
-        Object: &model,
-    }
-    producer.Produce(evt)
+	producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", model.ID)
+	evt := &eventingapi.Event[*models.Cluster]{
+		EventType:    "Update",
+		ResourceType: "k8s-cluster",
+		Object:       &model,
+	}
+	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -246,13 +248,13 @@ func (c *ClusterController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", models.IDType(id))
-    evt := &eventingapi.Event[*models.Cluster]{
-        EventType: "Delete",
-        ResourceType: "k8s-cluster",
-        Object: &model,
-    }
-    producer.Produce(evt)
+	producer, _ := c.EventingManager.Lookup(identity, "k8s-cluster", models.IDType(id))
+	evt := &eventingapi.Event[*models.Cluster]{
+		EventType:    "Delete",
+		ResourceType: "k8s-cluster",
+		Object:       &model,
+	}
+	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }

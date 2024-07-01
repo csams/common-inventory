@@ -25,9 +25,9 @@ type HostController struct {
 
 func NewHostController(db *gorm.DB, eventingManager eventingapi.Manager, log *slog.Logger) *HostController {
 	return &HostController{
-		Db:  db,
-        EventingManager: eventingManager,
-		Log: log,
+		Db:              db,
+		EventingManager: eventingManager,
+		Log:             log,
 	}
 }
 
@@ -126,13 +126,13 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "linux-host", model.ID)
-    evt := &eventingapi.Event[*models.Host]{
-        EventType: "Create",
-        ResourceType: "linux-host",
-        Object: &model,
-    }
-    producer.Produce(evt)
+	producer, _ := c.EventingManager.Lookup(identity, "linux-host", model.ID)
+	evt := &eventingapi.Event[*models.Host]{
+		EventType:    "Create",
+		ResourceType: "linux-host",
+		Object:       &model,
+	}
+	producer.Produce(evt)
 
 	out := &models.HostOut{
 		Metadata:   models.ResourceOut{Resource: model.Metadata},
@@ -213,13 +213,13 @@ func (c *HostController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "linux-host", models.IDType(id))
-    evt := &eventingapi.Event[*models.Host]{
-        EventType: "Update",
-        ResourceType: "linux-host",
-        Object: &model,
-    }
-    producer.Produce(evt)
+	producer, _ := c.EventingManager.Lookup(identity, "linux-host", models.IDType(id))
+	evt := &eventingapi.Event[*models.Host]{
+		EventType:    "Update",
+		ResourceType: "linux-host",
+		Object:       &model,
+	}
+	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -246,13 +246,13 @@ func (c *HostController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    producer, _ := c.EventingManager.Lookup(identity, "linux-host", models.IDType(id))
-    evt := &eventingapi.Event[*models.Host]{
-        EventType: "Delete",
-        ResourceType: "linux-host",
-        Object: &model,
-    }
-    producer.Produce(evt)
+	producer, _ := c.EventingManager.Lookup(identity, "linux-host", models.IDType(id))
+	evt := &eventingapi.Event[*models.Host]{
+		EventType:    "Delete",
+		ResourceType: "linux-host",
+		Object:       &model,
+	}
+	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }

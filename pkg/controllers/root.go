@@ -12,8 +12,8 @@ import (
 	"gorm.io/gorm"
 
 	authnapi "github.com/csams/common-inventory/pkg/authn/api"
-	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
 	cimw "github.com/csams/common-inventory/pkg/controllers/middleware"
+	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
 )
 
 func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingManager eventingapi.Manager, log *slog.Logger) chi.Router {

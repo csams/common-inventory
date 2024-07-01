@@ -6,5 +6,5 @@ import (
 )
 
 type Manager interface {
-    Lookup(identity *authnapi.Identity, resourceType string, resourceId models.IDType) (Producer, error)
+	Lookup(identity *authnapi.Identity, resourceType string, resourceId models.IDType) (Producer, error)
 }
