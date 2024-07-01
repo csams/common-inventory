@@ -29,6 +29,7 @@ func NewConfig(o *Options) *Config {
 	}
 }
 
+// TODO: Update the serve so the serving cert and client CA are rotated without downtime (hitless rotation).
 func (c *Config) getTSLConfig() (*tls.Config, error) {
 	if c.TLSConfig == nil {
 		if c.Options.CertOpt > int(tls.NoClientCert) {
