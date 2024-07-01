@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-    "github.com/csams/common-inventory/pkg/authn"
+	"github.com/csams/common-inventory/pkg/authn"
 	"github.com/csams/common-inventory/pkg/controllers"
 	"github.com/csams/common-inventory/pkg/errors"
 	"github.com/csams/common-inventory/pkg/server"
@@ -28,7 +28,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 
 			storageConfig := storage.NewConfig(storageOptions).Complete()
 
-            // configure authn
+			// configure authn
 			if errs := authnOptions.Complete(); errs != nil {
 				return errors.NewAggregate(errs)
 			}
@@ -62,11 +62,11 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return err
 			}
 
-            // bring up the authenticator
-            authenticator, err := authn.New(authnConfig)
-            if err != nil {
-                return err
-            }
+			// bring up the authenticator
+			authenticator, err := authn.New(authnConfig)
+			if err != nil {
+				return err
+			}
 
 			// bring up the server
 			rootHandler := controllers.NewRootHandler(db, authenticator, log)
@@ -81,7 +81,7 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 
 	serverOptions.AddFlags(cmd.Flags(), "server")
 	storageOptions.AddFlags(cmd.Flags(), "storage")
-    authnOptions.AddFlags(cmd.Flags(), "authn")
+	authnOptions.AddFlags(cmd.Flags(), "authn")
 
 	return cmd
 }

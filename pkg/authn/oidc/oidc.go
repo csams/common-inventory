@@ -21,8 +21,8 @@ type OAuth2Authenticator struct {
 func New(c CompletedConfig) (*OAuth2Authenticator, error) {
 	ctx := context.Background()
 
-    // this allows us to test locally against KeyCloak or something using an http client that doesn't check
-    // serving certs
+	// this allows us to test locally against KeyCloak or something using an http client that doesn't check
+	// serving certs
 	ctx = coreosoidc.ClientContext(ctx, c.Client)
 
 	oidcConfig := &coreosoidc.Config{ClientID: c.ClientId}
@@ -55,7 +55,7 @@ func (o *OAuth2Authenticator) Authenticate(r *http.Request) (*api.Identity, api.
 		return nil, api.Deny
 	}
 
-    // TODO: make JWT claim fields configurable
+	// TODO: make JWT claim fields configurable
 	// extract the claims we care about
 	u := &Claims{}
 	tok.Claims(u)
@@ -67,8 +67,8 @@ func (o *OAuth2Authenticator) Authenticate(r *http.Request) (*api.Identity, api.
 		return nil, api.Deny
 	}
 
-    // TODO: What are the tenant and group claims?
-    return &api.Identity{ Principal: u.Id }, api.Allow
+	// TODO: What are the tenant and group claims?
+	return &api.Identity{Principal: u.Id}, api.Allow
 }
 
 // TODO: make JWT claim fields configurable

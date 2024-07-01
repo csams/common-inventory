@@ -25,9 +25,9 @@ func (a *ClientCertAuthenticator) Authenticate(r *http.Request) (*api.Identity, 
 
 	// TODO: What do we do about tenant id here?
 	// TODO: Should we say all reporters will authenticate with client certificates?
-    // TODO: How do we get Type, Href, etc.?
+	// TODO: How do we get Type, Href, etc.?
 	return &api.Identity{
-		Principal: cert.Subject.CommonName,
+		Principal:  cert.Subject.CommonName,
 		Groups:     cert.Subject.Organization,
 		IsReporter: true,
 	}, api.Allow

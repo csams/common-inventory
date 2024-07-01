@@ -12,16 +12,16 @@ import (
 func New(config CompletedConfig) (api.Authenticator, error) {
 	d := delegator.New()
 
-    // client certs authn
+	// client certs authn
 	d.Add(clientcert.New())
 
-    // pre shared key authn
+	// pre shared key authn
 	if config.PreSharedKeys != nil {
-        a := psk.New(*config.PreSharedKeys)
+		a := psk.New(*config.PreSharedKeys)
 		d.Add(a)
 	}
 
-    // oidc tokens
+	// oidc tokens
 	if config.Oidc != nil {
 		if a, err := oidc.New(*config.Oidc); err == nil {
 			d.Add(a)
@@ -30,9 +30,9 @@ func New(config CompletedConfig) (api.Authenticator, error) {
 		}
 	}
 
-    // unauthenticated
-    // TODO: make it configurable whether we allow unauthenticated access
-    d.Add(guest.New())
+	// unauthenticated
+	// TODO: make it configurable whether we allow unauthenticated access
+	d.Add(guest.New())
 
 	return d, nil
 }

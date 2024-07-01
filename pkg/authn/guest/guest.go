@@ -14,12 +14,12 @@ func New() *GuestAuthenticator {
 
 func (a *GuestAuthenticator) Authenticate(r *http.Request) (*api.Identity, api.Decision) {
 
-    // TODO: should we use something else? ip address?
-    ua := r.Header.Get("User-Agent")
-    identity := &api.Identity{
-        Principal: ua,
-        IsGuest: true,
-    }
+	// TODO: should we use something else? ip address?
+	ua := r.Header.Get("User-Agent")
+	identity := &api.Identity{
+		Principal: ua,
+		IsGuest:   true,
+	}
 
-    return identity, api.Allow
+	return identity, api.Allow
 }

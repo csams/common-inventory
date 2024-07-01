@@ -63,6 +63,6 @@ func Pagination(next http.Handler) http.Handler {
 }
 
 var (
-    PaginationRequestKey = &contextKey{"paginationRequest"}
-    GetPaginationRequest = GetFromContext[PaginationRequest](PaginationRequestKey)
+	PaginationRequestKey = &contextKey{"paginationRequest"}
+	GetPaginationRequest = GetFromContext[PaginationRequest](PaginationRequestKey)
 )

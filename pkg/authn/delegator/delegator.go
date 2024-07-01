@@ -11,20 +11,20 @@ type DelegatingAuthenticator struct {
 }
 
 func New() *DelegatingAuthenticator {
-    return &DelegatingAuthenticator{}
+	return &DelegatingAuthenticator{}
 }
 
 func (d *DelegatingAuthenticator) Add(a api.Authenticator) {
-    d.Authenticators = append(d.Authenticators, a)
+	d.Authenticators = append(d.Authenticators, a)
 }
 
 func (d *DelegatingAuthenticator) Authenticate(r *http.Request) (*api.Identity, api.Decision) {
 	for _, a := range d.Authenticators {
 		identity, decision := a.Authenticate(r)
-        if decision == api.Ignore {
-            continue
-        }
-        return identity, decision
+		if decision == api.Ignore {
+			continue
+		}
+		return identity, decision
 	}
-    return nil, api.Deny
+	return nil, api.Deny
 }

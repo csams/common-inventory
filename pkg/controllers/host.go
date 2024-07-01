@@ -106,10 +106,9 @@ func (c *HostController) Create(w http.ResponseWriter, r *http.Request) {
 			ResourceType: "linux-host",
 			Reporters: []models.Reporter{
 				{
-					Name:               identity.Principal,
-					Type:               identity.Type,
-					URL:                identity.Href,
-					ReporterInstanceId: input.Metadata.ReporterInstanceId,
+					Name: identity.Principal,
+					Type: identity.Type,
+					URL:  identity.Href,
 
 					Created: input.Metadata.ReporterTime,
 					Updated: input.Metadata.ReporterTime,

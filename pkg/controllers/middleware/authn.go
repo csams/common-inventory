@@ -13,7 +13,7 @@ func Authentication(authenticator authnapi.Authenticator) func(http.Handler) htt
 			identity, decision := authenticator.Authenticate(r)
 			if decision != authnapi.Allow {
 				http.Error(w, "Not Authenticated", http.StatusUnauthorized)
-                return
+				return
 			}
 
 			ctx := context.WithValue(r.Context(), IdentityRequestKey, identity)

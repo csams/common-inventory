@@ -5,7 +5,7 @@ import (
 )
 
 type Options struct {
-    PreSharedKeyFile string `mapstructure:"pre-shared-key-file"`
+	PreSharedKeyFile string `mapstructure:"pre-shared-key-file"`
 }
 
 func NewOptions() *Options {

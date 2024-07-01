@@ -21,7 +21,7 @@ type Options struct {
 
 func NewOptions() *Options {
 	return &Options{
-        Addr:         "localhost:9080",
+		Addr:         "localhost:9080",
 		ReadTimeout:  300,
 		WriteTimeout: 10,
 		CertOpt:      3, // https://pkg.go.dev/crypto/tls#ClientAuthType

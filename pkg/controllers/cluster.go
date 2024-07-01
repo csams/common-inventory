@@ -70,7 +70,7 @@ func (c *ClusterController) List(w http.ResponseWriter, r *http.Request) {
 			Metadata:      models.ResourceOut{Resource: r.Metadata},
 			ClusterCommon: r.ClusterCommon,
 		}
-		out.Metadata.Href = fmt.Sprintf("/api/inventory/v1.0/hosts/%d", r.ID)
+		out.Metadata.Href = fmt.Sprintf("/api/inventory/v1.0/clusters/%d", r.ID)
 		output = append(output, out)
 	}
 
@@ -106,10 +106,9 @@ func (c *ClusterController) Create(w http.ResponseWriter, r *http.Request) {
 			ResourceType: "k8s-cluster",
 			Reporters: []models.Reporter{
 				{
-					Name:               identity.Principal,
-					Type:               identity.Type,
-					URL:                identity.Href,
-					ReporterInstanceId: input.Metadata.ReporterInstanceId,
+					Name: identity.Principal,
+					Type: identity.Type,
+					URL:  identity.Href,
 
 					Created: input.Metadata.ReporterTime,
 					Updated: input.Metadata.ReporterTime,
@@ -155,7 +154,7 @@ func (c *ClusterController) Get(w http.ResponseWriter, r *http.Request) {
 		ClusterCommon: model.ClusterCommon,
 	}
 
-	out.Metadata.Href = fmt.Sprintf("api/inventory/v1.0/hosts/%d", model.ID)
+	out.Metadata.Href = fmt.Sprintf("api/inventory/v1.0/cluster/%d", model.ID)
 	render.JSON(w, r, &model)
 }
 

@@ -43,11 +43,11 @@ func (c *Config) getTSLConfig() (*tls.Config, error) {
 			}
 
 			c.TLSConfig = &tls.Config{
-                ServerName: c.Options.SNI,
-                ClientAuth: tls.ClientAuthType(c.Options.CertOpt),
-                ClientCAs: caCertPool,
-                MinVersion: tls.VersionTLS12,
-            }
+				ServerName: c.Options.SNI,
+				ClientAuth: tls.ClientAuthType(c.Options.CertOpt),
+				ClientCAs:  caCertPool,
+				MinVersion: tls.VersionTLS12,
+			}
 		}
 	}
 
