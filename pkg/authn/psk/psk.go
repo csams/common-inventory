@@ -14,8 +14,8 @@ type PreSharedKeyAuthenticator struct {
     Store IdentityMap
 }
 
-func New(config CompletedConfig) PreSharedKeyAuthenticator {
-    return PreSharedKeyAuthenticator{Store: config.Keys}
+func New(config CompletedConfig) *PreSharedKeyAuthenticator {
+    return &PreSharedKeyAuthenticator{Store: config.Keys}
 }
 
 func (a *PreSharedKeyAuthenticator) Lookup(key string) *api.Identity {

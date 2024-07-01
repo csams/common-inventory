@@ -2,11 +2,8 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"net/http"
 )
-
-var ReporterRequestKey = &contextKey{"reporterRequest"}
 
 type ReporterRequest struct {
 	Name               string
@@ -34,14 +31,7 @@ func Reporter(next http.Handler) http.Handler {
 	})
 }
 
-func GetReporter(ctx context.Context) (*ReporterRequest, error) {
-	obj := ctx.Value(ReporterRequestKey)
-	if obj == nil {
-		return nil, errors.New("Expected ReporterRequest")
-	}
-	req, ok := obj.(*ReporterRequest)
-	if !ok {
-		return nil, errors.New("Object stored in request context couldn't convert to *ReporterRequest")
-	}
-	return req, nil
-}
+var (
+	ReporterRequestKey = &contextKey{"reporterRequest"}
+	GetReporter        = GetFromContext[ReporterRequest](ReporterRequestKey)
+)

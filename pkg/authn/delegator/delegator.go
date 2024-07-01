@@ -10,6 +10,10 @@ type DelegatingAuthenticator struct {
 	Authenticators []api.Authenticator
 }
 
+func New() *DelegatingAuthenticator {
+    return &DelegatingAuthenticator{}
+}
+
 func (d *DelegatingAuthenticator) Add(a api.Authenticator) {
     d.Authenticators = append(d.Authenticators, a)
 }

@@ -15,8 +15,8 @@ func NewCommand(options *storage.Options, log *slog.Logger) *cobra.Command {
 		Use:   "migrate",
 		Short: "Create or migrate the database tables",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := options.Complete(); err != nil {
-				return err
+			if errs := options.Complete(); errs != nil {
+				return errors.NewAggregate(errs)
 			}
 
 			if errs := options.Validate(); errs != nil {

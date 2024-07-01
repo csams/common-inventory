@@ -21,7 +21,7 @@ type Options struct {
 
 func NewOptions() *Options {
 	return &Options{
-        Addr:         ":9080",
+        Addr:         "localhost:9080",
 		ReadTimeout:  300,
 		WriteTimeout: 10,
 		CertOpt:      3, // https://pkg.go.dev/crypto/tls#ClientAuthType
@@ -46,7 +46,7 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 	fs.IntVar(&o.CertOpt, prefix+"certopt", o.CertOpt, "the certificate option to use for client certificate authentication.  See https://pkg.go.dev/crypto/tls#ClientAuthType")
 }
 
-func (o *Options) Complete() error {
+func (o *Options) Complete() []error {
 	return nil
 }
 

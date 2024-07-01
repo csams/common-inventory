@@ -1,4 +1,4 @@
-package oauth2
+package oidc
 
 import (
 	"net/http"
@@ -25,11 +25,11 @@ func NewConfig(o *Options) *Config {
 	}
 }
 
-func (c *Config) Complete() CompletedConfig {
+func (c *Config) Complete() (CompletedConfig, error) {
 	if c.Client == nil {
 		c.Client = util.NewClient(c.InsecureClient)
 	}
 	return CompletedConfig{&completedConfig{
 		c,
-	}}
+	}}, nil
 }

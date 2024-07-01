@@ -33,7 +33,7 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 	o.SqlLite3.AddFlags(fs, prefix+"sqlite3")
 }
 
-func (o *Options) Complete() error {
+func (o *Options) Complete() []error {
 	return nil
 }
 

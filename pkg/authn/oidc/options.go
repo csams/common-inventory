@@ -1,4 +1,4 @@
-package oauth2
+package oidc
 
 import (
 	"github.com/spf13/pflag"
@@ -18,8 +18,8 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 	if prefix != "" {
 		prefix = prefix + "."
 	}
-	fs.StringVar(&o.ClientId, prefix+"client-id", "commoninventory", "the clientId issued by the authorization server that represents the application")
-	fs.StringVar(&o.AuthorizationServerURL, prefix+"authn-server-url", "https://localhost/realms/commoninventory", "the URL to the authorization server")
+	fs.StringVar(&o.ClientId, prefix+"client-id", "", "the clientId issued by the authorization server that represents the application")
+	fs.StringVar(&o.AuthorizationServerURL, prefix+"authn-server-url", "", "the URL to the authorization server")
 	fs.BoolVarP(&o.InsecureClient, prefix+"insecure-client", "k", false, "validate authorization server certs?")
 }
 
@@ -27,6 +27,6 @@ func (o *Options) Validate() []error {
 	return nil
 }
 
-func (o *Options) Complete() error {
+func (o *Options) Complete() []error {
 	return nil
 }

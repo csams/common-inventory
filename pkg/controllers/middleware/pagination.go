@@ -2,14 +2,11 @@ package middleware
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 
 	"gorm.io/gorm"
 )
-
-var PaginationRequestKey = &contextKey{"paginationRequest"}
 
 type PagedReponseMetadata struct {
 	Page  int   `json:"page"`
@@ -39,15 +36,15 @@ func Pagination(next http.Handler) http.Handler {
 		}
 
 		sizeStr := r.URL.Query().Get("size")
-		var size int = 100
+		var size int = 10
 		if sizeStr != "" {
 			if s, err := strconv.Atoi(sizeStr); err == nil && s > 0 {
 				size = s
 			}
 		}
 
-		if size > 500 {
-			size = 500
+		if size > 100 {
+			size = 100
 		}
 
 		filter := func(db *gorm.DB) *gorm.DB {
@@ -65,14 +62,7 @@ func Pagination(next http.Handler) http.Handler {
 	})
 }
 
-func GetPaginationRequest(ctx context.Context) (*PaginationRequest, error) {
-	obj := ctx.Value(PaginationRequestKey)
-	if obj == nil {
-		return nil, errors.New("Expected PaginationRequest")
-	}
-	req, ok := obj.(*PaginationRequest)
-	if !ok {
-		return nil, errors.New("Object stored in request context couldn't convert to *PaginationRequest")
-	}
-	return req, nil
-}
+var (
+    PaginationRequestKey = &contextKey{"paginationRequest"}
+    GetPaginationRequest = GetFromContext[PaginationRequest](PaginationRequestKey)
+)

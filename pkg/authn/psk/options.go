@@ -5,7 +5,7 @@ import (
 )
 
 type Options struct {
-    PreSharedKeyFile string
+    PreSharedKeyFile string `mapstructure:"pre-shared-key-file"`
 }
 
 func NewOptions() *Options {
@@ -16,13 +16,13 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 	if prefix != "" {
 		prefix = prefix + "."
 	}
-	fs.StringVar(&o.PreSharedKeyFile, prefix+"pre-shared-key-file", "common-inventory", "A file of identities with pre-shared keys that allow them to authenticate.")
+	fs.StringVar(&o.PreSharedKeyFile, prefix+"pre-shared-key-file", "", "A file of identities with pre-shared keys that allow them to authenticate.")
 }
 
 func (o *Options) Validate() []error {
 	return nil
 }
 
-func (o *Options) Complete() error {
+func (o *Options) Complete() []error {
 	return nil
 }

@@ -1,7 +1,6 @@
 package clientcert
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/csams/common-inventory/pkg/authn/api"
@@ -9,7 +8,7 @@ import (
 
 type ClientCertAuthenticator struct{}
 
-func New(log *slog.Logger) *ClientCertAuthenticator {
+func New() *ClientCertAuthenticator {
 	return &ClientCertAuthenticator{}
 }
 
