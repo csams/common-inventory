@@ -34,7 +34,7 @@ type Resource struct {
 	ResourceType string `gorm:"not null"`
 	Workspace    string
 
-    Reporters []Reporter `gorm:"many2many:resource_reporters"`
+	Reporters []Reporter `gorm:"many2many:resource_reporters"`
 	Tags      []ResourceTag
 }
 
