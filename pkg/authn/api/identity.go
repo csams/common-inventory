@@ -2,6 +2,8 @@ package api
 
 // Identity is the identity of the requester
 type Identity struct {
+
+	// TODO: do we even need the tenant id?
 	Tenant string `yaml:"tenant"`
 
 	Principal string   `yaml:"principal"`
