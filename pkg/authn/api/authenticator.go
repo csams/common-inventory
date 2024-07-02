@@ -13,5 +13,7 @@ const (
 )
 
 type Authenticator interface {
+
+	// TODO: update the return value so it can carry a message in the DENY case
 	Authenticate(r *http.Request) (*Identity, Decision)
 }

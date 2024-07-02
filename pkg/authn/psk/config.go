@@ -39,6 +39,7 @@ func (c *Config) Complete() (CompletedConfig, error) {
 }
 
 func (c *Config) loadPreSharedKeys() error {
+	// TODO: fsnotify to reload the keys when the PSK file changes.
 	if file, err := os.Open(c.PreSharedKeyFile); err == nil {
 		defer file.Close()
 		data, err := io.ReadAll(file)
