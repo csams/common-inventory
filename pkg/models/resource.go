@@ -28,25 +28,25 @@ type ResourceIn struct {
 }
 
 func (r *ResourceIn) Validate() []error {
-    var errs []error
+	var errs []error
 
-    if len(r.DisplayName) == 0 {
-        errs = append(errs, errors.New("DisplayName must not be empty"))
-    }
+	if len(r.DisplayName) == 0 {
+		errs = append(errs, errors.New("DisplayName must not be empty"))
+	}
 
-    if len(r.ResourceIdAlias) == 0 {
-        errs = append(errs, errors.New("ResourceIdAlias must not be empty"))
-    }
+	if len(r.ResourceIdAlias) == 0 {
+		errs = append(errs, errors.New("ResourceIdAlias must not be empty"))
+	}
 
-    if len(r.ResourceType) == 0 {
-        errs = append(errs, errors.New("ResourceType must not be empty"))
-    }
+	if len(r.ResourceType) == 0 {
+		errs = append(errs, errors.New("ResourceType must not be empty"))
+	}
 
-    if len(r.Data) == 0 {
-        errs = append(errs, errors.New("Data must not be empty"))
-    }
+	if len(r.Data) == 0 {
+		errs = append(errs, errors.New("Data must not be empty"))
+	}
 
-    return errs
+	return errs
 }
 
 // ResourceOut is a REST API mixin for specific resource types

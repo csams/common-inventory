@@ -139,10 +139,10 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    if errs := input.Validate(); errs != nil {
-        http.Error(w, cerrors.NewAggregate(errs).Error(), http.StatusBadRequest)
-        return
-    }
+	if errs := input.Validate(); errs != nil {
+		http.Error(w, cerrors.NewAggregate(errs).Error(), http.StatusBadRequest)
+		return
+	}
 
 	model := models.Resource{
 		DisplayName:  input.DisplayName,
@@ -154,9 +154,9 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 				Type: identity.Type,
 				URL:  identity.Href,
 
-				Created: input.ReporterTime,
-				Updated: input.ReporterTime,
-                ResourceIdAlias: input.ResourceIdAlias,
+				Created:         input.ReporterTime,
+				Updated:         input.ReporterTime,
+				ResourceIdAlias: input.ResourceIdAlias,
 			},
 		},
 		Data: datatypes.JSON(input.Data),
