@@ -28,15 +28,14 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingM
 
 	r.With(
 		cimw.Authentication(authenticator),
+        cimw.Logger(log),
 		render.SetContentType(render.ContentTypeJSON),
 	).
 		Route("/api/inventory/v1.0", func(r chi.Router) {
 
 			// These type specific controllers can be simplified with go generics, but we can't settle on a
 			// set of standard event types or common handling logic across all resource types.
-			r.Mount("/resources", NewResourceController(db, log).Routes())
-			r.Mount("/linux-hosts", NewHostController(db, eventingManager, log).Routes())
-			r.Mount("/k8s-clusters", NewClusterController(db, eventingManager, log).Routes())
+			r.Mount("/resources", NewResourceController(db, eventingManager, log).Routes())
 		})
 
 	return r

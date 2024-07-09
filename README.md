@@ -1,6 +1,6 @@
 # Common Inventory
 This repository explores designs for a common inventory system.  The models and even behavior in it are
-currently wrong, but it provides a place to start and sketches some ideas.
+currently wrong, but it provides a place to start and sketches ideas.
 
 Run `make build` and then `./bin/common-inventory help`.
 
@@ -37,14 +37,11 @@ Then run `./bin/common-inventory serve`
 In a separate terminal, run
 
 ```bash
-curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Cluster"}, "ApiServer": "www.example.com/api-server"}' http://localhost:9080/api/inventory/v1.0/k8s-clusters
-curl -H "Content-Type: application/json" -d '{"Metadata": {"DisplayName": "Example Host"}, "Fqdn": "www.example.com"}' http://localhost:9080/api/inventory/v1.0/linux-hosts
+curl -H "Content-Type: application/json" -d '{"DisplayName": "Example Cluster" "ResourceType": "k8s-cluster", "ResourceIdAlias": "1", "Data": {"ApiServer": "www.example.com/api-server"}}}' http://localhost:9080/api/inventory/v1.0/resources
 ```
 
 Then run
 
 ```bash
-curl '127.0.0.1:9080/api/v1.0/linux-hosts' | jq .
-curl '127.0.0.1:9080/api/v1.0/k8s-clusters' | jq .
 curl '127.0.0.1:9080/api/v1.0/resources' | jq .
 ```

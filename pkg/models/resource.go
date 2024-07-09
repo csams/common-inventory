@@ -1,6 +1,12 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"time"
+
+	"gorm.io/datatypes"
+)
 
 type IDType int64
 
@@ -15,7 +21,32 @@ type ResourceIn struct {
 	ApiHref         string
 	ResourceIdAlias string
 
+	ResourceType string
+	Data         json.RawMessage
+
 	Tags []ResourceTag
+}
+
+func (r *ResourceIn) Validate() []error {
+    var errs []error
+
+    if len(r.DisplayName) == 0 {
+        errs = append(errs, errors.New("DisplayName must not be empty"))
+    }
+
+    if len(r.ResourceIdAlias) == 0 {
+        errs = append(errs, errors.New("ResourceIdAlias must not be empty"))
+    }
+
+    if len(r.ResourceType) == 0 {
+        errs = append(errs, errors.New("ResourceType must not be empty"))
+    }
+
+    if len(r.Data) == 0 {
+        errs = append(errs, errors.New("Data must not be empty"))
+    }
+
+    return errs
 }
 
 // ResourceOut is a REST API mixin for specific resource types
@@ -33,6 +64,8 @@ type Resource struct {
 	DisplayName  string `gorm:"not null"`
 	ResourceType string `gorm:"not null"`
 	Workspace    string
+
+	Data datatypes.JSON `json:"Data" gorm:"not null"`
 
 	Reporters []Reporter `gorm:"many2many:resource_reporters"`
 	Tags      []ResourceTag
