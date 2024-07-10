@@ -44,7 +44,7 @@ func (c *Config) loadPreSharedKeys() error {
 		defer file.Close()
 		data, err := io.ReadAll(file)
 		if err == nil {
-			if err := yaml.Unmarshal(data, c.Keys); err != nil {
+			if err := yaml.Unmarshal(data, &c.Keys); err != nil {
 				return err
 			}
 		} else {

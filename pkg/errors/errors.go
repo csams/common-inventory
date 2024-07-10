@@ -19,3 +19,8 @@ func (a Aggregate) Error() string {
 	}
 	return strings.Join(strs, "\n")
 }
+
+type HttpError struct {
+	Status  int    `json:"status"`
+	Message string `json:"messgae"`
+}

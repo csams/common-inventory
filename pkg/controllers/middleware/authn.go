@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	authnapi "github.com/csams/common-inventory/pkg/authn/api"
@@ -14,6 +15,13 @@ func Authentication(authenticator authnapi.Authenticator) func(http.Handler) htt
 			if decision != authnapi.Allow {
 				http.Error(w, "Not Authenticated", http.StatusUnauthorized)
 				return
+			}
+
+			if logger, err := GetRequestLogger(r.Context()); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+                return
+			} else {
+				logger.Info(fmt.Sprintf("%v", identity))
 			}
 
 			ctx := context.WithValue(r.Context(), IdentityRequestKey, identity)

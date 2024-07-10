@@ -27,8 +27,8 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingM
 	r.Get("/healthz", Ready)
 
 	r.With(
-		cimw.Authentication(authenticator),
 		cimw.Logger(log),
+		cimw.Authentication(authenticator),
 		render.SetContentType(render.ContentTypeJSON),
 	).
 		Route("/api/inventory/v1.0", func(r chi.Router) {

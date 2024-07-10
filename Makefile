@@ -5,7 +5,7 @@ SHELL := /usr/bin/env bash -e
 default: build ;
 
 .PHONY: build
-build: require-go ## build the common-inventory binary
+build: require-go format ## build the common-inventory binary
 	go mod tidy
 	go build -o ./bin/common-inventory main.go
 
@@ -13,6 +13,10 @@ build: require-go ## build the common-inventory binary
 test: WHAT ?= ./...
 test: build require-go
 	go test -v $(WHAT)
+
+.PHONY: format
+format: ## format go code in the project
+	gofmt -w .
 
 .PHONY: clean
 clean: ## clean out the binaries
