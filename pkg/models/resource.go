@@ -16,10 +16,13 @@ type ResourceIn struct {
 	// Allow reporters to specify when something was created or updated.  Don't allow them to have control
 	// over announcing their type or Id.  Reporter type and Id should be derived or otherwise communicated
 	// from a signed token.
-	ReporterTime    time.Time
-	ConsoleHref     string
-	ApiHref         string
-	ResourceIdAlias string
+	LocalTime time.Time
+
+	// LocalId is the identifier given to the resource by the reporter
+	LocalId string
+
+	ConsoleHref string
+	ApiHref     string
 
 	ResourceType string
 	Data         json.RawMessage
@@ -34,8 +37,8 @@ func (r *ResourceIn) Validate() []error {
 		errs = append(errs, errors.New("DisplayName must not be empty"))
 	}
 
-	if len(r.ResourceIdAlias) == 0 {
-		errs = append(errs, errors.New("ResourceIdAlias must not be empty"))
+	if len(r.LocalId) == 0 {
+		errs = append(errs, errors.New("LocalId must not be empty"))
 	}
 
 	if len(r.ResourceType) == 0 {
@@ -88,7 +91,7 @@ type Reporter struct {
 	ApiHref     string
 
 	// This is the primary key assigned to the resource *by the reporter*.
-	ResourceIdAlias string `gorm:"not null"`
+	LocalId string `gorm:"not null"`
 }
 
 // ResourceTag is a way for a resource to be tagged and queried for cross cutting concerns

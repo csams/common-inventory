@@ -154,9 +154,9 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 				Type: identity.Type,
 				URL:  identity.Href,
 
-				Created:         input.ReporterTime,
-				Updated:         input.ReporterTime,
-				ResourceIdAlias: input.ResourceIdAlias,
+				Created:         input.LocalTime,
+				Updated:         input.LocalTime,
+				LocalId: input.LocalId,
 			},
 		},
 		Data: datatypes.JSON(input.Data),
@@ -216,11 +216,11 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 
 	model.DisplayName = input.DisplayName
 	model.Tags = input.Tags
-	model.UpdatedAt = input.ReporterTime
+	model.UpdatedAt = input.LocalTime
 
 	for _, r := range model.Reporters {
 		if r.Name == identity.Principal {
-			r.Updated = input.ReporterTime
+			r.Updated = input.LocalTime
 		}
 	}
 
