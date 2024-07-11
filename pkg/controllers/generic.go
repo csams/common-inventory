@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -20,21 +19,33 @@ import (
 	"github.com/csams/common-inventory/pkg/models"
 )
 
-type ResourceController struct {
+type Controller[I models.Input, M models.Model, O models.Output] struct {
+	BasePath        string
+	Transformer     models.Transformer[I, M, O]
 	Db              *gorm.DB
+	Preloads        []string
 	EventingManager eventingapi.Manager
 	Log             *slog.Logger
 }
 
-func NewResourceController(db *gorm.DB, em eventingapi.Manager, log *slog.Logger) *ResourceController {
-	return &ResourceController{
+func NewController[I models.Input, M models.Model, O models.Output](
+	basePath string,
+	processor models.Transformer[I, M, O],
+	preloads []string,
+	db *gorm.DB,
+	em eventingapi.Manager,
+	log *slog.Logger) *Controller[I, M, O] {
+	return &Controller[I, M, O]{
+		BasePath:        basePath,
 		Db:              db,
+		Transformer:     processor,
+		Preloads:        preloads,
 		EventingManager: em,
 		Log:             log,
 	}
 }
 
-func (c ResourceController) Routes() chi.Router {
+func (c Controller[I, M, O]) Routes() chi.Router {
 	r := chi.NewRouter()
 
 	r.With(middleware.Pagination).Get("/", c.List)
@@ -48,7 +59,7 @@ func (c ResourceController) Routes() chi.Router {
 	return r
 }
 
-func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
+func (c *Controller[I, M, O]) List(w http.ResponseWriter, r *http.Request) {
 	_, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -61,7 +72,7 @@ func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var model models.Resource
+	model := c.Transformer.NewModel()
 	var count int64
 	if err := c.Db.Model(&model).Count(&count).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -70,22 +81,20 @@ func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
 
 	db := c.Db.Scopes(pagination.Filter)
 
-	var results []models.Resource
+	var results []M
 	if err := db.Preload(clause.Associations).Find(&results).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	var output []models.ResourceOut
+	var output []O
 	for _, result := range results {
-		out := models.ResourceOut{
-			Resource: result,
-			Href:     fmt.Sprintf("/api/inventory/v1.0/resources/%d", result.ID),
-		}
+		out := c.Transformer.ToOutput(result)
+		out.SetHref(fmt.Sprintf("%s/%d", c.BasePath, result.GetId()))
 		output = append(output, out)
 	}
 
-	resp := &middleware.PagedResponse[models.ResourceOut]{
+	resp := &middleware.PagedResponse[O]{
 		PagedReponseMetadata: middleware.PagedReponseMetadata{
 			Page:  pagination.Page,
 			Size:  len(results),
@@ -97,7 +106,7 @@ func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, resp)
 }
 
-func (c *ResourceController) Get(w http.ResponseWriter, r *http.Request) {
+func (c *Controller[I, M, O]) Get(w http.ResponseWriter, r *http.Request) {
 	_, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -109,7 +118,7 @@ func (c *ResourceController) Get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	var model models.Resource
+	model := c.Transformer.NewModel()
 	if err := c.Db.Preload(clause.Associations).First(&model, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -119,21 +128,19 @@ func (c *ResourceController) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out := models.ResourceOut{
-		Resource: model,
-		Href:     fmt.Sprintf("/api/inventory/v1.0/resources/%d", model.ID),
-	}
+	out := c.Transformer.ToOutput(model)
+	out.SetHref(fmt.Sprintf("%s/%d", c.BasePath, model.GetId()))
 	render.JSON(w, r, out)
 }
 
-func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
+func (c *Controller[I, M, O]) Create(w http.ResponseWriter, r *http.Request) {
 	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	var input models.ResourceIn
+	input := c.Transformer.NewInput()
 	if err := render.Decode(r, &input); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -144,56 +151,40 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := models.Resource{
-		DisplayName:  input.DisplayName,
-		Tags:         input.Tags,
-		ResourceType: input.ResourceType,
-		Reporters: []models.Reporter{
-			{
-				Name: identity.Principal,
-				Type: identity.Type,
-				URL:  identity.Href,
-
-				Created:         input.LocalTime,
-				Updated:         input.LocalTime,
-				LocalId: input.LocalId,
-			},
-		},
-		Data: datatypes.JSON(input.Data),
-	}
+	model := c.Transformer.Create(input, identity)
 
 	if err := c.Db.Create(&model).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: handle eventing errors
-	// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-	producer, _ := c.EventingManager.Lookup(identity, input.ResourceType, model.ID)
-	evt := &eventingapi.Event[models.Resource]{
-		EventType:    "Create",
-		ResourceType: input.ResourceType,
-		Object:       model,
+	if c.EventingManager != nil {
+		// TODO: handle eventing errors
+		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
+		producer, _ := c.EventingManager.Lookup(identity, model.GetResourceType(), model.GetId())
+		evt := &eventingapi.Event[M]{
+			EventType:    "Create",
+			ResourceType: model.GetResourceType(),
+			Object:       model,
+		}
+		producer.Produce(evt)
 	}
-	producer.Produce(evt)
 
-	out := &models.ResourceOut{
-		Resource: model,
-		Href:     fmt.Sprintf("/api/inventory/v1.0/resources/%d", model.ID),
-	}
+	out := c.Transformer.ToOutput(model)
+	out.SetHref(fmt.Sprintf("%s/%d", c.BasePath, model.GetId()))
 
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, out)
 }
 
-func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
+func (c *Controller[I, M, O]) Update(w http.ResponseWriter, r *http.Request) {
 	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	var input models.ResourceIn
+	input := c.Transformer.NewInput()
 	if err := render.Decode(r, &input); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -204,8 +195,13 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	var model models.Resource
-	if err := c.Db.Preload("Metadata.Reporters").Preload("Metadata.Tags").First(&model, id).Error; err != nil {
+	db := c.Db
+	for _, preload := range c.Preloads {
+		db = db.Preload(preload)
+	}
+
+	model := c.Transformer.NewModel()
+	if err := db.First(model, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
@@ -214,35 +210,29 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.DisplayName = input.DisplayName
-	model.Tags = input.Tags
-	model.UpdatedAt = input.LocalTime
+	c.Transformer.Update(input, model, identity)
 
-	for _, r := range model.Reporters {
-		if r.Name == identity.Principal {
-			r.Updated = input.LocalTime
-		}
-	}
-
-	if err := c.Db.Session(&gorm.Session{FullSaveAssociations: true}).Model(&model).Save(&model).Error; err != nil {
+	if err := c.Db.Session(&gorm.Session{FullSaveAssociations: true}).Model(model).Save(model).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// TODO: handle eventing errors
-	// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-	producer, _ := c.EventingManager.Lookup(identity, input.ResourceType, model.ID)
-	evt := &eventingapi.Event[models.Resource]{
-		EventType:    "Update",
-		ResourceType: input.ResourceType,
-		Object:       model,
+	if c.EventingManager != nil {
+		// TODO: handle eventing errors
+		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
+		producer, _ := c.EventingManager.Lookup(identity, model.GetResourceType(), model.GetId())
+		evt := &eventingapi.Event[M]{
+			EventType:    "Update",
+			ResourceType: model.GetResourceType(),
+			Object:       model,
+		}
+		producer.Produce(evt)
 	}
-	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c *Controller[I, M, O]) Delete(w http.ResponseWriter, r *http.Request) {
 	identity, err := middleware.GetIdentity(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -254,8 +244,8 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	var model models.Resource
-	if err := c.Db.Delete(&model, id).Error; err != nil {
+	model := c.Transformer.NewModel()
+	if err := c.Db.Delete(model, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 		} else {
@@ -264,15 +254,17 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: handle eventing errors
-	// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-	producer, _ := c.EventingManager.Lookup(identity, model.ResourceType, model.ID)
-	evt := &eventingapi.Event[models.Resource]{
-		EventType:    "Update",
-		ResourceType: model.ResourceType,
-		Object:       model,
+	if c.EventingManager != nil {
+		// TODO: handle eventing errors
+		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
+		producer, _ := c.EventingManager.Lookup(identity, model.GetResourceType(), model.GetId())
+		evt := &eventingapi.Event[M]{
+			EventType:    "Update",
+			ResourceType: model.GetResourceType(),
+			Object:       model,
+		}
+		producer.Produce(evt)
 	}
-	producer.Produce(evt)
 
 	w.WriteHeader(http.StatusNoContent)
 }

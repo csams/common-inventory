@@ -19,7 +19,7 @@ func Authentication(authenticator authnapi.Authenticator) func(http.Handler) htt
 
 			if logger, err := GetRequestLogger(r.Context()); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
-                return
+				return
 			} else {
 				logger.Info(fmt.Sprintf("%v", identity))
 			}

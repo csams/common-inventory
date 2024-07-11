@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/csams/common-inventory/pkg/authn/api"
 	"gorm.io/datatypes"
 )
 
@@ -54,11 +55,14 @@ func (r *ResourceIn) Validate() []error {
 
 // ResourceOut is a REST API mixin for specific resource types
 type ResourceOut struct {
-	Resource
+	*Resource
 	Href string
 }
 
-// Resource is common to entities that have a resource type in the database model
+func (r *ResourceOut) SetHref(href string) {
+	r.Href = href
+}
+
 type Resource struct {
 	ID        IDType `gorm:"primaryKey" json:"-"` // don't send this in the REST API
 	CreatedAt time.Time
@@ -72,6 +76,14 @@ type Resource struct {
 
 	Reporters []Reporter `gorm:"many2many:resource_reporters"`
 	Tags      []ResourceTag
+}
+
+func (r *Resource) GetId() IDType {
+	return r.ID
+}
+
+func (r *Resource) GetResourceType() string {
+	return r.ResourceType
 }
 
 // Reporter is a lower inventory communicating a creation or update of a resource
@@ -105,3 +117,91 @@ type ResourceTag struct {
 	Key       string `gorm:"not null"`
 	Value     string
 }
+
+type ResourceProcessor struct{}
+
+func NewResourceTransformer() *ResourceProcessor {
+	return &ResourceProcessor{}
+}
+
+func (p *ResourceProcessor) NewInput() *ResourceIn {
+	return &ResourceIn{}
+}
+
+func (p *ResourceProcessor) NewModel() *Resource {
+	return &Resource{}
+}
+
+func (p *ResourceProcessor) Create(input *ResourceIn, identity *api.Identity) *Resource {
+	return &Resource{
+		// CreatedAt and UpdatedAt will be updated automatically by gorm
+		DisplayName:  input.DisplayName,
+		Tags:         input.Tags,
+		ResourceType: input.ResourceType,
+		Data:         datatypes.JSON(input.Data),
+		Reporters: []Reporter{
+			{
+				Created: input.LocalTime,
+				Updated: input.LocalTime,
+
+				Name: identity.Principal,
+				Type: identity.Type,
+				URL:  identity.Href,
+
+				ConsoleHref: input.ConsoleHref,
+				ApiHref:     input.ApiHref,
+
+				LocalId: input.LocalId,
+			},
+		},
+	}
+}
+
+func (p *ResourceProcessor) Update(input *ResourceIn, model *Resource, identity *api.Identity) {
+	model.DisplayName = input.DisplayName
+	model.Tags = input.Tags
+	model.UpdatedAt = input.LocalTime
+	model.Data = datatypes.JSON(input.Data)
+
+	found := false
+	for _, r := range model.Reporters {
+		if r.Name == identity.Principal {
+			found = true
+
+			r.Updated = input.LocalTime
+
+			r.Type = identity.Type
+			r.URL = identity.Href
+
+			r.ConsoleHref = input.ConsoleHref
+			r.ApiHref = input.ApiHref
+
+			r.LocalId = input.LocalId
+		}
+	}
+
+	if !found {
+		reporter := Reporter{
+			Created: input.LocalTime,
+			Updated: input.LocalTime,
+
+			Name: identity.Principal,
+			Type: identity.Type,
+			URL:  identity.Href,
+
+			ConsoleHref: input.ConsoleHref,
+			ApiHref:     input.ApiHref,
+
+			LocalId: input.LocalId,
+		}
+		model.Reporters = append(model.Reporters, reporter)
+	}
+}
+
+func (p *ResourceProcessor) ToOutput(r *Resource) *ResourceOut {
+	return &ResourceOut{
+		Resource: r,
+	}
+}
+
+var _ Transformer[*ResourceIn, *Resource, *ResourceOut] = &ResourceProcessor{}
