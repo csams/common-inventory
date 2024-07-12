@@ -5,13 +5,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/csams/common-inventory/pkg/authn/api"
 	"gorm.io/datatypes"
 )
 
 type IDType int64
 
-// ResourceIn is a REST API mixin for specific resource types
 type ResourceIn struct {
 	DisplayName string
 	// Allow reporters to specify when something was created or updated.  Don't allow them to have control
@@ -53,16 +51,6 @@ func (r *ResourceIn) Validate() []error {
 	return errs
 }
 
-// ResourceOut is a REST API mixin for specific resource types
-type ResourceOut struct {
-	*Resource
-	Href string
-}
-
-func (r *ResourceOut) SetHref(href string) {
-	r.Href = href
-}
-
 type Resource struct {
 	ID        IDType `gorm:"primaryKey" json:"-"` // don't send this in the REST API
 	CreatedAt time.Time
@@ -74,21 +62,15 @@ type Resource struct {
 
 	Data datatypes.JSON `json:"Data" gorm:"not null"`
 
-	Reporters []Reporter `gorm:"many2many:resource_reporters"`
+	Reporters []Reporter
 	Tags      []ResourceTag
-}
-
-func (r *Resource) GetId() IDType {
-	return r.ID
-}
-
-func (r *Resource) GetResourceType() string {
-	return r.ResourceType
 }
 
 // Reporter is a lower inventory communicating a creation or update of a resource
 type Reporter struct {
-	Name string `gorm:"primaryKey"`
+	ID IDType `json:"-" gorm:"primaryKey"`
+
+	Name string
 
 	// "CreatedAt" and "UpdatedAt" have special meaning to gorm.  We want these to represent when the lower
 	// inventory created or updated the resource, not when the fields are updated in the common inventory. The
@@ -101,6 +83,8 @@ type Reporter struct {
 
 	ConsoleHref string
 	ApiHref     string
+
+	ResourceID IDType `json:"-"`
 
 	// This is the primary key assigned to the resource *by the reporter*.
 	LocalId string `gorm:"not null"`
@@ -118,90 +102,15 @@ type ResourceTag struct {
 	Value     string
 }
 
-type ResourceProcessor struct{}
-
-func NewResourceTransformer() *ResourceProcessor {
-	return &ResourceProcessor{}
+// ResourceOut is a REST API mixin for specific resource types
+type ResourceOut struct {
+	*Resource
+	Href string
 }
 
-func (p *ResourceProcessor) NewInput() *ResourceIn {
-	return &ResourceIn{}
-}
-
-func (p *ResourceProcessor) NewModel() *Resource {
-	return &Resource{}
-}
-
-func (p *ResourceProcessor) Create(input *ResourceIn, identity *api.Identity) *Resource {
-	return &Resource{
-		// CreatedAt and UpdatedAt will be updated automatically by gorm
-		DisplayName:  input.DisplayName,
-		Tags:         input.Tags,
-		ResourceType: input.ResourceType,
-		Data:         datatypes.JSON(input.Data),
-		Reporters: []Reporter{
-			{
-				Created: input.LocalTime,
-				Updated: input.LocalTime,
-
-				Name: identity.Principal,
-				Type: identity.Type,
-				URL:  identity.Href,
-
-				ConsoleHref: input.ConsoleHref,
-				ApiHref:     input.ApiHref,
-
-				LocalId: input.LocalId,
-			},
-		},
-	}
-}
-
-func (p *ResourceProcessor) Update(input *ResourceIn, model *Resource, identity *api.Identity) {
-	model.DisplayName = input.DisplayName
-	model.Tags = input.Tags
-	model.UpdatedAt = input.LocalTime
-	model.Data = datatypes.JSON(input.Data)
-
-	found := false
-	for _, r := range model.Reporters {
-		if r.Name == identity.Principal {
-			found = true
-
-			r.Updated = input.LocalTime
-
-			r.Type = identity.Type
-			r.URL = identity.Href
-
-			r.ConsoleHref = input.ConsoleHref
-			r.ApiHref = input.ApiHref
-
-			r.LocalId = input.LocalId
-		}
-	}
-
-	if !found {
-		reporter := Reporter{
-			Created: input.LocalTime,
-			Updated: input.LocalTime,
-
-			Name: identity.Principal,
-			Type: identity.Type,
-			URL:  identity.Href,
-
-			ConsoleHref: input.ConsoleHref,
-			ApiHref:     input.ApiHref,
-
-			LocalId: input.LocalId,
-		}
-		model.Reporters = append(model.Reporters, reporter)
-	}
-}
-
-func (p *ResourceProcessor) ToOutput(r *Resource) *ResourceOut {
+func NewResourceOutput(r *Resource, href string) *ResourceOut {
 	return &ResourceOut{
 		Resource: r,
+		Href:     href,
 	}
 }
-
-var _ Transformer[*ResourceIn, *Resource, *ResourceOut] = &ResourceProcessor{}

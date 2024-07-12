@@ -15,7 +15,6 @@ import (
 	authnapi "github.com/csams/common-inventory/pkg/authn/api"
 	cimw "github.com/csams/common-inventory/pkg/controllers/middleware"
 	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
-	"github.com/csams/common-inventory/pkg/models"
 )
 
 func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingManager eventingapi.Manager, log *slog.Logger) chi.Router {
@@ -39,13 +38,8 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingM
 
 			// These type specific controllers can be simplified with go generics, but we can't settle on a
 			// set of standard event types or common handling logic across all resource types.
-			r.Mount("/resources", NewController(
-				fmt.Sprintf("%s/%s", basePath, "resources"),
-				models.NewResourceTransformer(),
-				[]string{"Reporters", "Tags"},
-				db,
-				eventingManager,
-				log).Routes())
+			r.Mount("/resources", NewResourceController(fmt.Sprintf("%s/resources", basePath), db, eventingManager, log).Routes())
+			r.Mount("/workspaces", NewWorkspaceController(fmt.Sprintf("%s/workspaces", basePath), db, log).Routes())
 		})
 
 	return r
