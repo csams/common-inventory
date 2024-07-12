@@ -26,7 +26,7 @@ type WorkspaceOut struct {
 }
 
 type Workspace struct {
-	ID        IDType `gorm:"primaryKey" json:"-"` // don't send this in the REST API
+	ID        IDType `gorm:"primaryKey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time `json:"LastUpdatedAt"`
 

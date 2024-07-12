@@ -58,7 +58,7 @@ type Resource struct {
 
 	DisplayName  string `gorm:"not null"`
 	ResourceType string `gorm:"not null"`
-	Workspace    string
+	WorkspaceID  *IDType
 
 	Data datatypes.JSON `json:"Data" gorm:"not null"`
 
