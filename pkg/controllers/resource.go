@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -268,7 +269,7 @@ func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, i
 		// CreatedAt and UpdatedAt will be updated automatically by gorm
 		DisplayName:  input.DisplayName,
 		Tags:         input.Tags,
-		ResourceType: input.ResourceType,
+		ResourceType: strings.ToLower(input.ResourceType),
 		Data:         datatypes.JSON(input.Data),
 		Reporters: []models.Reporter{
 			{
