@@ -12,6 +12,7 @@ import (
 	"github.com/csams/common-inventory/cmd/serve"
 
 	"github.com/csams/common-inventory/pkg/authn"
+	"github.com/csams/common-inventory/pkg/eventing"
 	"github.com/csams/common-inventory/pkg/server"
 	"github.com/csams/common-inventory/pkg/storage"
 )
@@ -32,12 +33,14 @@ var (
 	}
 
 	options = struct {
-		Authn   *authn.Options   `mapstructure:"authn"`
-		Storage *storage.Options `mapstructure:"storage"`
-		Server  *server.Options  `mapstructure:"server"`
+		Authn    *authn.Options    `mapstructure:"authn"`
+		Storage  *storage.Options  `mapstructure:"storage"`
+		Eventing *eventing.Options `mapstructure:"eventing"`
+		Server   *server.Options   `mapstructure:"server"`
 	}{
 		authn.NewOptions(),
 		storage.NewOptions(),
+		eventing.NewOptions(),
 		server.NewOptions(),
 	}
 )
@@ -64,7 +67,7 @@ func init() {
 	rootCmd.AddCommand(migrateCmd)
 	viper.BindPFlags(migrateCmd.Flags())
 
-	serveCmd := serve.NewCommand(options.Server, options.Storage, options.Authn, rootLog.WithGroup("server"))
+	serveCmd := serve.NewCommand(options.Server, options.Storage, options.Authn, options.Eventing, rootLog.WithGroup("server"))
 	rootCmd.AddCommand(serveCmd)
 	viper.BindPFlags(serveCmd.Flags())
 }

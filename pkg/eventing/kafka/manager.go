@@ -22,7 +22,7 @@ type KafkaManager struct {
 	Errors   <-chan error
 }
 
-func NewManager(config CompletedConfig, log slog.Logger) (api.Manager, error) {
+func New(config CompletedConfig, log *slog.Logger) (*KafkaManager, error) {
 	if sender, err := confluent.New(confluent.WithConfigMap(config.KafkaConfig)); err != nil {
 		return nil, err
 	} else {
@@ -65,7 +65,6 @@ func NewManager(config CompletedConfig, log slog.Logger) (api.Manager, error) {
 						log.Info(fmt.Sprintf("Ignored event: %v\n", ev))
 					}
 				}
-
 			}
 		}()
 
@@ -84,11 +83,7 @@ func (m *KafkaManager) Errs() <-chan error {
 
 // Lookup figures out which Producer should be used for the given identity and resource.
 func (m *KafkaManager) Lookup(identity *authnapi.Identity, resource *models.Resource) (api.Producer, error) {
-	return &kafkaProducer{
-		Manager:  m,
-		Topic:    "common-inventory",
-		Identity: identity,
-	}, nil
+	return NewProducer(m, "common-inventory", identity), nil
 }
 
 func (m *KafkaManager) Shutdown(ctx context.Context) error {
@@ -101,10 +96,11 @@ type kafkaProducer struct {
 	Identity *authnapi.Identity
 }
 
-func NewProducer(manager *KafkaManager, topic string) api.Producer {
+func NewProducer(manager *KafkaManager, topic string, identity *authnapi.Identity) *kafkaProducer {
 	return &kafkaProducer{
-		Manager: manager,
-		Topic:   topic,
+		Manager:  manager,
+		Topic:    topic,
+		Identity: identity,
 	}
 }
 

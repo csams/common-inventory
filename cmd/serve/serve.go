@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"os"
 	"os/signal"
@@ -25,6 +24,7 @@ func NewCommand(
 	serverOptions *server.Options,
 	storageOptions *storage.Options,
 	authnOptions *authn.Options,
+	eventingOptions *eventing.Options,
 	log *slog.Logger,
 ) *cobra.Command {
 	cmd := &cobra.Command{
@@ -56,6 +56,20 @@ func NewCommand(
 				return errors.NewAggregate(errs)
 			}
 
+			// configure authn
+			if errs := eventingOptions.Complete(); errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
+			if errs := eventingOptions.Validate(); errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
+			eventingConfig, errs := eventing.NewConfig(eventingOptions).Complete()
+			if errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
 			// configure the server
 			if errs := serverOptions.Complete(); errs != nil {
 				return errors.NewAggregate(errs)
@@ -82,7 +96,7 @@ func NewCommand(
 				return err
 			}
 
-			eventingManager := eventing.New()
+			eventingManager, err := eventing.New(eventingConfig, log)
 
 			// bring up the server
 			rootHandler := controllers.NewRootHandler(db, authenticator, eventingManager, log)
@@ -124,13 +138,14 @@ func gracefulShutdown(srv *server.Server, em eventingapi.Manager, log *slog.Logg
 	return func(reason interface{}) {
 		log.Info(fmt.Sprintf("Server Shutdown: %s", reason))
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		timeout := srv.HttpServer.ReadTimeout
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Error(fmt.Sprintf("Error Gracefully Shutting Down API: %v", err))
 		}
 
-		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel = context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 		if err := em.Shutdown(ctx); err != nil {
 			log.Error(fmt.Sprintf("Error Gracefully Shutting Down Eventing: %v", err))
