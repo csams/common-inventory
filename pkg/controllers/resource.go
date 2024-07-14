@@ -159,13 +159,13 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 	if c.EventingManager != nil {
 		// TODO: handle eventing errors
 		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-		producer, _ := c.EventingManager.Lookup(identity, model.ResourceType, model.ID)
-		evt := &eventingapi.Event[*models.Resource]{
+		producer, _ := c.EventingManager.Lookup(identity, model)
+		evt := &eventingapi.Event{
 			EventType:    "Create",
 			ResourceType: model.ResourceType,
 			Object:       model,
 		}
-		producer.Produce(evt)
+		producer.Produce(r.Context(), evt)
 	}
 
 	href := fmt.Sprintf("%s/%d", c.BasePath, model.ID)
@@ -215,13 +215,13 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 	if c.EventingManager != nil {
 		// TODO: handle eventing errors
 		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-		producer, _ := c.EventingManager.Lookup(identity, model.ResourceType, model.ID)
-		evt := &eventingapi.Event[*models.Resource]{
+		producer, _ := c.EventingManager.Lookup(identity, &model)
+		evt := &eventingapi.Event{
 			EventType:    "Update",
 			ResourceType: model.ResourceType,
 			Object:       &model,
 		}
-		producer.Produce(evt)
+		producer.Produce(r.Context(), evt)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
@@ -252,13 +252,13 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 	if c.EventingManager != nil {
 		// TODO: handle eventing errors
 		// TODO: Update the Object that's sent.  This is going to be what we actually emit.
-		producer, _ := c.EventingManager.Lookup(identity, model.ResourceType, model.ID)
-		evt := &eventingapi.Event[*models.Resource]{
+		producer, _ := c.EventingManager.Lookup(identity, &model)
+		evt := &eventingapi.Event{
 			EventType:    "Update",
 			ResourceType: model.ResourceType,
 			Object:       &model,
 		}
-		producer.Produce(evt)
+		producer.Produce(r.Context(), evt)
 	}
 
 	w.WriteHeader(http.StatusNoContent)

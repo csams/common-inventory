@@ -3,6 +3,7 @@ module github.com/csams/common-inventory
 go 1.21.5
 
 require (
+	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/render v1.0.3
 	github.com/samber/slog-chi v1.10.1
@@ -17,16 +18,21 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/stretchr/testify v1.9.0 // indirect
+	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
 )
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/cloudevents/sdk-go/protocol/kafka_confluent/v2 v2.0.0-20240704073622-8efefb01754a
+	github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
 	github.com/coreos/go-oidc/v3 v3.10.0
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
@@ -47,8 +53,8 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	go.opentelemetry.io/otel v1.19.0 // indirect
-	go.opentelemetry.io/otel/trace v1.19.0 // indirect
+	go.opentelemetry.io/otel v1.24.0 // indirect
+	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect

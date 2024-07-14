@@ -1,1 +1,116 @@
 package kafka
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+
+	confluent "github.com/cloudevents/sdk-go/protocol/kafka_confluent/v2"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	cecontext "github.com/cloudevents/sdk-go/v2/context"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+
+	authnapi "github.com/csams/common-inventory/pkg/authn/api"
+	"github.com/csams/common-inventory/pkg/eventing/api"
+	"github.com/csams/common-inventory/pkg/models"
+)
+
+type KafkaManager struct {
+	Config   CompletedConfig
+	Protocol *confluent.Protocol
+	Client   cloudevents.Client
+	Errors   <-chan error
+}
+
+func NewManager(config CompletedConfig, log slog.Logger) (api.Manager, error) {
+	if sender, err := confluent.New(confluent.WithConfigMap(config.KafkaConfig)); err != nil {
+		return nil, err
+	} else {
+		client, err := cloudevents.NewClient(sender, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())
+		if err != nil {
+			return nil, err
+		}
+
+		errChan := make(chan error)
+
+		go func() {
+			eventChan, err := sender.Events()
+			if err != nil {
+				log.Error(fmt.Sprintf("failed to get events channel for sender, %v", err))
+				errChan <- err
+			} else {
+				for e := range eventChan {
+					switch ev := e.(type) {
+					case *kafka.Message:
+						// The message delivery report, indicating success or permanent failure after retries have
+						// been exhausted. Application level retries won't help since the client is already
+						// configured to do that.
+						m := ev
+						if m.TopicPartition.Error != nil {
+							log.Error(fmt.Sprintf("Delivery failed: %v\n", m.TopicPartition.Error))
+							errChan <- err
+						} else {
+							log.Info(fmt.Sprintf("Delivered message to topic %s [%d] at offset %v\n",
+								*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset))
+						}
+					case kafka.Error:
+						e := ev
+						if e.IsFatal() {
+							log.Error(fmt.Sprintf("Error: %v\n", ev))
+							errChan <- e
+						} else {
+							log.Info(fmt.Sprintf("Error: %v\n", ev))
+						}
+					default:
+						log.Info(fmt.Sprintf("Ignored event: %v\n", ev))
+					}
+				}
+
+			}
+		}()
+
+		return &KafkaManager{
+			Config:   config,
+			Protocol: sender,
+			Client:   client,
+			Errors:   errChan,
+		}, nil
+	}
+}
+
+func (m *KafkaManager) Errs() <-chan error {
+	return m.Errors
+}
+
+// Lookup figures out which Producer should be used for the given identity and resource.
+func (m *KafkaManager) Lookup(identity *authnapi.Identity, resource *models.Resource) (api.Producer, error) {
+	return &kafkaProducer{
+		Manager:  m,
+		Topic:    "common-inventory",
+		Identity: identity,
+	}, nil
+}
+
+func (m *KafkaManager) Shutdown(ctx context.Context) error {
+	return m.Protocol.Close(ctx)
+}
+
+type kafkaProducer struct {
+	Manager  *KafkaManager
+	Topic    string
+	Identity *authnapi.Identity
+}
+
+func NewProducer(manager *KafkaManager, topic string) api.Producer {
+	return &kafkaProducer{
+		Manager: manager,
+		Topic:   topic,
+	}
+}
+
+// Produce creates the cloud event and sends it on the Kafka Topic
+func (p *kafkaProducer) Produce(ctx context.Context, event *api.Event) error {
+	e := cloudevents.NewEvent()
+	e.SetData(cloudevents.ApplicationJSON, event)
+	return p.Manager.Client.Send(cecontext.WithTopic(ctx, p.Topic), e)
+}

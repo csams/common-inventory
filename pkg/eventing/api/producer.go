@@ -1,5 +1,9 @@
 package api
 
+import (
+	"context"
+)
+
 type Producer interface {
-	Produce(event interface{}) error
+	Produce(ctx context.Context, event *Event) error
 }

@@ -1,7 +1,14 @@
 package serve
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
+	"time"
+
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -9,11 +16,17 @@ import (
 	"github.com/csams/common-inventory/pkg/controllers"
 	"github.com/csams/common-inventory/pkg/errors"
 	"github.com/csams/common-inventory/pkg/eventing"
+	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
 	"github.com/csams/common-inventory/pkg/server"
 	"github.com/csams/common-inventory/pkg/storage"
 )
 
-func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, authnOptions *authn.Options, log *slog.Logger) *cobra.Command {
+func NewCommand(
+	serverOptions *server.Options,
+	storageOptions *storage.Options,
+	authnOptions *authn.Options,
+	log *slog.Logger,
+) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Start the inventory server",
@@ -78,7 +91,25 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 				return err
 			}
 
-			return server.PrepareRun().Run()
+			srvErrs := make(chan error)
+			go func() {
+				srvErrs <- server.Run()
+			}()
+
+			quit := make(chan os.Signal, 1)
+			signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+			shutdown := gracefulShutdown(server, eventingManager, log)
+
+			select {
+			case err := <-srvErrs:
+				shutdown(err)
+			case sig := <-quit:
+				shutdown(sig)
+			case emErr := <-eventingManager.Errs():
+				shutdown(emErr)
+			}
+			return nil
 		},
 	}
 
@@ -87,4 +118,22 @@ func NewCommand(serverOptions *server.Options, storageOptions *storage.Options, 
 	authnOptions.AddFlags(cmd.Flags(), "authn")
 
 	return cmd
+}
+
+func gracefulShutdown(srv *server.Server, em eventingapi.Manager, log *slog.Logger) func(reason interface{}) {
+	return func(reason interface{}) {
+		log.Info(fmt.Sprintf("Server Shutdown: %s", reason))
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Error(fmt.Sprintf("Error Gracefully Shutting Down API: %v", err))
+		}
+
+		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := em.Shutdown(ctx); err != nil {
+			log.Error(fmt.Sprintf("Error Gracefully Shutting Down Eventing: %v", err))
+		}
+	}
 }

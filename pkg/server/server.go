@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -34,15 +35,8 @@ func New(c CompletedConfig, handler http.Handler, log *slog.Logger) *Server {
 	}
 }
 
-// PrepareRun should do any last minute setup before starting the server
-func (s *Server) PrepareRun() preparedServer {
-	return preparedServer{
-		Server: s,
-	}
-}
-
 // Only a preparedServer can be Run, so we can't start an incorrectly configured server
-func (s preparedServer) Run() error {
+func (s *Server) Run() error {
 	s.Log.Info(fmt.Sprintf("Listening on address %s", s.HttpServer.Addr))
 
 	if s.SecureServing {
@@ -50,4 +44,8 @@ func (s preparedServer) Run() error {
 	}
 
 	return s.HttpServer.ListenAndServe()
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.HttpServer.Shutdown(ctx)
 }
