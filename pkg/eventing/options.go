@@ -15,7 +15,7 @@ type Options struct {
 func NewOptions() *Options {
 	return &Options{
 		Kafka:   kafka.NewOptions(),
-		Eventer: "kafka",
+		Eventer: "stdout",
 	}
 }
 

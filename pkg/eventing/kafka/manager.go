@@ -23,7 +23,10 @@ type KafkaManager struct {
 }
 
 func New(config CompletedConfig, log *slog.Logger) (*KafkaManager, error) {
-	if sender, err := confluent.New(confluent.WithConfigMap(config.KafkaConfig)); err != nil {
+	if sender, err := confluent.New(
+		confluent.WithConfigMap(config.KafkaConfig),
+		confluent.WithSenderTopic("common-inventory"),
+	); err != nil {
 		return nil, err
 	} else {
 		client, err := cloudevents.NewClient(sender, cloudevents.WithTimeNow(), cloudevents.WithUUIDs())

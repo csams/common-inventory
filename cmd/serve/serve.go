@@ -130,6 +130,7 @@ func NewCommand(
 	serverOptions.AddFlags(cmd.Flags(), "server")
 	storageOptions.AddFlags(cmd.Flags(), "storage")
 	authnOptions.AddFlags(cmd.Flags(), "authn")
+	eventingOptions.AddFlags(cmd.Flags(), "eventing")
 
 	return cmd
 }
