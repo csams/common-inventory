@@ -270,7 +270,8 @@ func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, i
 		DisplayName:  input.DisplayName,
 		Tags:         input.Tags,
 		ResourceType: strings.ToLower(input.ResourceType),
-		Data:         datatypes.JSON(input.Data),
+		Spec:         datatypes.JSON(input.Spec),
+		Status:       datatypes.JSON(input.Status),
 		Reporters: []models.Reporter{
 			{
 				Created: input.LocalTime,
@@ -293,7 +294,8 @@ func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, m
 	model.DisplayName = input.DisplayName
 	model.Tags = input.Tags
 	model.UpdatedAt = input.LocalTime
-	model.Data = datatypes.JSON(input.Data)
+	model.Spec = datatypes.JSON(input.Spec)
+	model.Status = datatypes.JSON(input.Status)
 
 	found := false
 	for i := range model.Reporters {

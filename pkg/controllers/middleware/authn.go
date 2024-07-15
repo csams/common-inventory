@@ -21,7 +21,7 @@ func Authentication(authenticator authnapi.Authenticator) func(http.Handler) htt
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			} else {
-				logger.Info(fmt.Sprintf("%v", identity))
+				logger.Info(fmt.Sprintf("User: %v", identity))
 			}
 
 			ctx := context.WithValue(r.Context(), IdentityRequestKey, identity)

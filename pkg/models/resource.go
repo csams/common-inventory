@@ -24,7 +24,8 @@ type ResourceIn struct {
 	ApiHref     string
 
 	ResourceType string
-	Data         json.RawMessage
+	Spec         json.RawMessage
+	Status       json.RawMessage
 
 	Tags []ResourceTag
 }
@@ -44,8 +45,8 @@ func (r *ResourceIn) Validate() []error {
 		errs = append(errs, errors.New("ResourceType must not be empty"))
 	}
 
-	if len(r.Data) == 0 {
-		errs = append(errs, errors.New("Data must not be empty"))
+	if len(r.Spec) == 0 {
+		errs = append(errs, errors.New("Spec must not be empty"))
 	}
 
 	return errs
@@ -60,7 +61,8 @@ type Resource struct {
 	ResourceType string `gorm:"not null"`
 	WorkspaceID  *IDType
 
-	Data datatypes.JSON `json:"Data" gorm:"not null"`
+	Spec   datatypes.JSON `json:"Spec" gorm:"not null"`
+	Status datatypes.JSON `json:"Status"`
 
 	Reporters []Reporter
 	Tags      []ResourceTag
