@@ -8,13 +8,18 @@ import (
 
 type Config struct {
 	Authz  string
-	Kessel kessel.Config
+	Kessel *kessel.Config
 }
 
 func NewConfig(o *Options) *Config {
+	var kcfg *kessel.Config
+	if o.Authz == "kessel" {
+		kcfg = kessel.NewConfig(o.Kessel)
+	}
+
 	return &Config{
 		Authz:  o.Authz,
-		Kessel: *kessel.NewConfig(o.Kessel),
+		Kessel: kcfg,
 	}
 }
 
