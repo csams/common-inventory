@@ -19,7 +19,7 @@ import (
 )
 
 func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, authorizer authzapi.Authorizer, eventingManager eventingapi.Manager, log *slog.Logger) chi.Router {
-	basePath := "/api/inventory/v1.0"
+	basePath := "/api/inventory/v1alpha1"
 
 	r := chi.NewRouter()
 
