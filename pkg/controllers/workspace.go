@@ -13,26 +13,30 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/csams/common-inventory/pkg/authn/api"
+	authnapi "github.com/csams/common-inventory/pkg/authn/api"
+	authzapi "github.com/csams/common-inventory/pkg/authz/api"
 	"github.com/csams/common-inventory/pkg/controllers/middleware"
 	cerrors "github.com/csams/common-inventory/pkg/errors"
 	"github.com/csams/common-inventory/pkg/models"
 )
 
 type WorkspaceController struct {
-	BasePath string
-	Db       *gorm.DB
-	Log      *slog.Logger
+	BasePath   string
+	Db         *gorm.DB
+	Authorizer authzapi.Authorizer
+	Log        *slog.Logger
 }
 
 func NewWorkspaceController(
 	basePath string,
 	db *gorm.DB,
+	authorizer authzapi.Authorizer,
 	log *slog.Logger) *WorkspaceController {
 	return &WorkspaceController{
-		BasePath: basePath,
-		Db:       db,
-		Log:      log,
+		BasePath:   basePath,
+		Db:         db,
+		Authorizer: authorizer,
+		Log:        log,
 	}
 }
 
@@ -212,12 +216,12 @@ func (c *WorkspaceController) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *WorkspaceController) CreateWorkspaceFromInput(input *models.WorkspaceIn, identity *api.Identity) *models.Workspace {
+func (c *WorkspaceController) CreateWorkspaceFromInput(input *models.WorkspaceIn, identity *authnapi.Identity) *models.Workspace {
 	return &models.Workspace{
 		DisplayName: input.DisplayName,
 	}
 }
 
-func (c *WorkspaceController) UpdateWorkspaceFromInput(input *models.WorkspaceIn, model *models.Workspace, identity *api.Identity) {
+func (c *WorkspaceController) UpdateWorkspaceFromInput(input *models.WorkspaceIn, model *models.Workspace, identity *authnapi.Identity) {
 	model.DisplayName = input.DisplayName
 }

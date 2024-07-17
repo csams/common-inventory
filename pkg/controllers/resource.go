@@ -15,7 +15,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/csams/common-inventory/pkg/authn/api"
+	authnapi "github.com/csams/common-inventory/pkg/authn/api"
+	authzapi "github.com/csams/common-inventory/pkg/authz/api"
 	"github.com/csams/common-inventory/pkg/controllers/middleware"
 	cerrors "github.com/csams/common-inventory/pkg/errors"
 	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
@@ -25,6 +26,7 @@ import (
 type ResourceController struct {
 	BasePath        string
 	Db              *gorm.DB
+	Authorizer      authzapi.Authorizer
 	EventingManager eventingapi.Manager
 	Log             *slog.Logger
 }
@@ -32,11 +34,13 @@ type ResourceController struct {
 func NewResourceController(
 	basePath string,
 	db *gorm.DB,
+	authorizer authzapi.Authorizer,
 	em eventingapi.Manager,
 	log *slog.Logger) *ResourceController {
 	return &ResourceController{
 		BasePath:        basePath,
 		Db:              db,
+		Authorizer:      authorizer,
 		EventingManager: em,
 		Log:             log,
 	}
@@ -264,7 +268,7 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, identity *api.Identity) *models.Resource {
+func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, identity *authnapi.Identity) *models.Resource {
 	return &models.Resource{
 		// CreatedAt and UpdatedAt will be updated automatically by gorm
 		DisplayName:  input.DisplayName,
@@ -290,7 +294,7 @@ func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, i
 	}
 }
 
-func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, model *models.Resource, identity *api.Identity) {
+func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, model *models.Resource, identity *authnapi.Identity) {
 	model.DisplayName = input.DisplayName
 	model.Tags = input.Tags
 	model.UpdatedAt = input.LocalTime

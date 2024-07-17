@@ -13,11 +13,12 @@ import (
 	"gorm.io/gorm"
 
 	authnapi "github.com/csams/common-inventory/pkg/authn/api"
+	authzapi "github.com/csams/common-inventory/pkg/authz/api"
 	cimw "github.com/csams/common-inventory/pkg/controllers/middleware"
 	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
 )
 
-func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingManager eventingapi.Manager, log *slog.Logger) chi.Router {
+func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, authorizer authzapi.Authorizer, eventingManager eventingapi.Manager, log *slog.Logger) chi.Router {
 	basePath := "/api/inventory/v1.0"
 
 	r := chi.NewRouter()
@@ -36,10 +37,8 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, eventingM
 	).
 		Route(basePath, func(r chi.Router) {
 
-			// These type specific controllers can be simplified with go generics, but we can't settle on a
-			// set of standard event types or common handling logic across all resource types.
-			r.Mount("/resources", NewResourceController(fmt.Sprintf("%s/resources", basePath), db, eventingManager, log).Routes())
-			r.Mount("/workspaces", NewWorkspaceController(fmt.Sprintf("%s/workspaces", basePath), db, log).Routes())
+			r.Mount("/resources", NewResourceController(fmt.Sprintf("%s/resources", basePath), db, authorizer, eventingManager, log).Routes())
+			r.Mount("/workspaces", NewWorkspaceController(fmt.Sprintf("%s/workspaces", basePath), db, authorizer, log).Routes())
 		})
 
 	return r

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/csams/common-inventory/pkg/authn"
+	"github.com/csams/common-inventory/pkg/authz"
 	"github.com/csams/common-inventory/pkg/controllers"
 	"github.com/csams/common-inventory/pkg/errors"
 	"github.com/csams/common-inventory/pkg/eventing"
@@ -24,6 +25,7 @@ func NewCommand(
 	serverOptions *server.Options,
 	storageOptions *storage.Options,
 	authnOptions *authn.Options,
+	authzOptions *authz.Options,
 	eventingOptions *eventing.Options,
 	log *slog.Logger,
 ) *cobra.Command {
@@ -31,6 +33,8 @@ func NewCommand(
 		Use:   "serve",
 		Short: "Start the inventory server",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := context.Background()
+
 			// configure storage
 			if errs := storageOptions.Complete(); errs != nil {
 				return errors.NewAggregate(errs)
@@ -47,7 +51,7 @@ func NewCommand(
 				return errors.NewAggregate(errs)
 			}
 
-			if errs := serverOptions.Validate(); errs != nil {
+			if errs := authnOptions.Validate(); errs != nil {
 				return errors.NewAggregate(errs)
 			}
 
@@ -56,7 +60,21 @@ func NewCommand(
 				return errors.NewAggregate(errs)
 			}
 
-			// configure authn
+			// configure authz
+			if errs := authzOptions.Complete(); errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
+			if errs := authzOptions.Validate(); errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
+			authzConfig, errs := authz.NewConfig(authzOptions).Complete(ctx)
+			if errs != nil {
+				return errors.NewAggregate(errs)
+			}
+
+			// configure eventing
 			if errs := eventingOptions.Complete(); errs != nil {
 				return errors.NewAggregate(errs)
 			}
@@ -96,10 +114,13 @@ func NewCommand(
 				return err
 			}
 
+			// bring up the authorizer
+			authorizer, err := authz.New(ctx, authzConfig)
+
 			eventingManager, err := eventing.New(eventingConfig, log)
 
 			// bring up the server
-			rootHandler := controllers.NewRootHandler(db, authenticator, eventingManager, log)
+			rootHandler := controllers.NewRootHandler(db, authenticator, authorizer, eventingManager, log)
 			server := server.New(serverConfig, rootHandler, log)
 			if err != nil {
 				return err
@@ -130,6 +151,7 @@ func NewCommand(
 	serverOptions.AddFlags(cmd.Flags(), "server")
 	storageOptions.AddFlags(cmd.Flags(), "storage")
 	authnOptions.AddFlags(cmd.Flags(), "authn")
+	authzOptions.AddFlags(cmd.Flags(), "authz")
 	eventingOptions.AddFlags(cmd.Flags(), "eventing")
 
 	return cmd

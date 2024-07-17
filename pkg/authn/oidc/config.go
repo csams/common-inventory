@@ -29,7 +29,5 @@ func (c *Config) Complete() (CompletedConfig, error) {
 	if c.Client == nil {
 		c.Client = util.NewClient(c.InsecureClient)
 	}
-	return CompletedConfig{&completedConfig{
-		c,
-	}}, nil
+	return CompletedConfig{&completedConfig{c}}, nil
 }

@@ -6,6 +6,8 @@ require (
 	github.com/cloudevents/sdk-go/v2 v2.15.2
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/render v1.0.3
+	github.com/go-kratos/kratos/v2 v2.7.3
+	github.com/project-kessel/relations-api v0.0.0-20240716121822-3978c7a8e1f9
 	github.com/samber/slog-chi v1.10.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
@@ -17,15 +19,24 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/containerd/platforms v0.2.1 // indirect
+	github.com/envoyproxy/protoc-gen-validate v1.0.4 // indirect
+	github.com/go-kratos/aegis v0.2.0 // indirect
+	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
+	google.golang.org/grpc v1.65.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
 )
 
