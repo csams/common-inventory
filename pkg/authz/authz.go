@@ -12,9 +12,9 @@ import (
 func New(ctx context.Context, config CompletedConfig) (api.Authorizer, error) {
 
 	switch config.Authz {
-	case "allow-all":
+	case AllowAll:
 		return allow.New(), nil
-	case "kessel":
+	case Kessel:
 		return kessel.New(ctx, config.Kessel)
 	default:
 		return nil, fmt.Errorf("Unrecognized authz.impl: %s", config.Authz)

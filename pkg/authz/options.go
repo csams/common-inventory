@@ -14,9 +14,14 @@ type Options struct {
 	Kessel *kessel.Options `mapstructure:"kessel"`
 }
 
+const (
+    AllowAll = "allow-all"
+    Kessel = "kessel"
+)
+
 func NewOptions() *Options {
 	return &Options{
-		Authz:  "allow-all",
+		Authz:  AllowAll,
 		Kessel: kessel.NewOptions(),
 	}
 }
@@ -33,11 +38,11 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 func (o *Options) Validate() []error {
 	var errs []error
 
-	if o.Authz != "allow-all" && o.Authz != "kessel" {
+	if o.Authz != AllowAll && o.Authz != Kessel {
 		errs = append(errs, fmt.Errorf("Invalid authz.impl: %s.  Options are 'allow-all' and 'kessel'", o.Authz))
 	}
 
-	if o.Authz == "kessel" {
+	if o.Authz == Kessel {
 		errs = append(errs, o.Kessel.Validate()...)
 	}
 
