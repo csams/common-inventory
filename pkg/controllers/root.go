@@ -14,7 +14,7 @@ import (
 
 	authnapi "github.com/csams/common-inventory/pkg/authn/api"
 	authzapi "github.com/csams/common-inventory/pkg/authz/api"
-	cimw "github.com/csams/common-inventory/pkg/controllers/middleware"
+	mw "github.com/csams/common-inventory/pkg/controllers/middleware"
 	eventingapi "github.com/csams/common-inventory/pkg/eventing/api"
 )
 
@@ -31,14 +31,14 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, authorize
 	r.Get("/healthz", Ready)
 
 	r.With(
-		cimw.Logger(log),
-		cimw.Authentication(authenticator),
+		mw.Logger(log),
+		mw.Authentication(authenticator),
 		render.SetContentType(render.ContentTypeJSON),
 	).
 		Route(basePath, func(r chi.Router) {
-
-			r.Mount("/resources", NewResourceController(fmt.Sprintf("%s/resources", basePath), db, authorizer, eventingManager, log).Routes())
-			r.Mount("/workspaces", NewWorkspaceController(fmt.Sprintf("%s/workspaces", basePath), db, authorizer, log).Routes())
+			r.Mount("/resources/hosts", NewResourceController(fmt.Sprintf("%s/resources/hosts", basePath), "hosts", db, authorizer, eventingManager, log).Routes())
+			r.Mount("/resources/clusters", NewResourceController(fmt.Sprintf("%s/resources/clusters", basePath), "clusters", db, authorizer, eventingManager, log).Routes())
+			r.Mount("/resources/acm-policies", NewResourceController(fmt.Sprintf("%s/resources/acm-policies", basePath), "acm-policies", db, authorizer, eventingManager, log).Routes())
 		})
 
 	return r

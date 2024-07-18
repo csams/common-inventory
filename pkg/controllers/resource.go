@@ -25,6 +25,7 @@ import (
 
 type ResourceController struct {
 	BasePath        string
+	ResourceType    string
 	Db              *gorm.DB
 	Authorizer      authzapi.Authorizer
 	EventingManager eventingapi.Manager
@@ -33,12 +34,14 @@ type ResourceController struct {
 
 func NewResourceController(
 	basePath string,
+	resourceType string,
 	db *gorm.DB,
 	authorizer authzapi.Authorizer,
 	em eventingapi.Manager,
 	log *slog.Logger) *ResourceController {
 	return &ResourceController{
 		BasePath:        basePath,
+		ResourceType:    resourceType,
 		Db:              db,
 		Authorizer:      authorizer,
 		EventingManager: em,
@@ -83,7 +86,7 @@ func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
 	db := c.Db.Scopes(pagination.Filter)
 
 	var results []models.Resource
-	if err := db.Preload(clause.Associations).Find(&results).Error; err != nil {
+	if err := db.Preload(clause.Associations).Where("resource_type = ?", c.ResourceType).Find(&results).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -92,7 +95,7 @@ func (c *ResourceController) List(w http.ResponseWriter, r *http.Request) {
 	for _, result := range results {
 		r := result
 		href := fmt.Sprintf("%s/%d", c.BasePath, result.ID)
-		out := models.NewResourceOutput(&r, href)
+		out := models.NewResourceOut(&r, href)
 		output = append(output, out)
 	}
 
@@ -115,23 +118,48 @@ func (c *ResourceController) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-
+	rawId := chi.URLParam(r, "id")
 	var model models.Resource
-	if err := c.Db.Preload(clause.Associations).First(&model, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+	id, err := strconv.ParseInt(rawId, 10, 64)
+	if err == nil {
+		if err := c.Db.Preload(clause.Associations).First(&model, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				http.Error(w, err.Error(), http.StatusNotFound)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
 		}
-		return
+	} else {
+		// if the id isn't an integer, it's the special format
+		parts := strings.Split(rawId, ":")
+		if len(parts) != 4 {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if parts[0] != "hcrn" {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		reporterType, reporterInstanceId, localResourceId := parts[1], parts[2], parts[3]
+		if err := c.Db.
+			Preload(clause.Associations).
+			Joins("join reporter_data on reporter_data.resource_id = resources.id").
+			Where("reporter_data.reporter_id = ? and reporter_data.reporter_type = ? and reporter_data.local_resource_id = ? and resources.resource_type = ?", reporterInstanceId, reporterType, localResourceId, c.ResourceType).
+			First(&model).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				http.Error(w, err.Error(), http.StatusNotFound)
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			return
+		}
 	}
 
 	href := fmt.Sprintf("%s/%d", c.BasePath, model.ID)
-	out := models.NewResourceOutput(&model, href)
+	out := models.NewResourceOut(&model, href)
 	render.JSON(w, r, out)
 }
 
@@ -153,7 +181,11 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := c.CreateResourceFromInput(&input, identity)
+	model, err := c.CreateResourceFromInput(&input, identity)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err := c.Db.Create(model).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -166,14 +198,14 @@ func (c *ResourceController) Create(w http.ResponseWriter, r *http.Request) {
 		producer, _ := c.EventingManager.Lookup(identity, model)
 		evt := &eventingapi.Event{
 			EventType:    "Create",
-			ResourceType: model.ResourceType,
+			ResourceType: c.ResourceType,
 			Object:       model,
 		}
 		producer.Produce(r.Context(), evt)
 	}
 
 	href := fmt.Sprintf("%s/%d", c.BasePath, model.ID)
-	out := models.NewResourceOutput(model, href)
+	out := models.NewResourceOut(model, href)
 
 	w.WriteHeader(http.StatusCreated)
 	render.JSON(w, r, out)
@@ -195,9 +227,10 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	db := c.Db.Preload("Reporters").Preload("Tags")
+	db := c.Db.Preload("ReporterData")
 
 	var model models.Resource
 	if err := db.First(&model, id).Error; err != nil {
@@ -209,7 +242,11 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.UpdateResourceFromInput(&input, &model, identity)
+	err = c.UpdateResourceFromInput(&input, &model, identity)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err := c.Db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&model).Error; err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -222,7 +259,7 @@ func (c *ResourceController) Update(w http.ResponseWriter, r *http.Request) {
 		producer, _ := c.EventingManager.Lookup(identity, &model)
 		evt := &eventingapi.Event{
 			EventType:    "Update",
-			ResourceType: model.ResourceType,
+			ResourceType: c.ResourceType,
 			Object:       &model,
 		}
 		producer.Produce(r.Context(), evt)
@@ -259,7 +296,7 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 		producer, _ := c.EventingManager.Lookup(identity, &model)
 		evt := &eventingapi.Event{
 			EventType:    "Update",
-			ResourceType: model.ResourceType,
+			ResourceType: c.ResourceType,
 			Object:       &model,
 		}
 		producer.Produce(r.Context(), evt)
@@ -268,72 +305,88 @@ func (c *ResourceController) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, identity *authnapi.Identity) *models.Resource {
+func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, identity *authnapi.Identity) (*models.Resource, error) {
+	var reporterType string
+	if len(identity.Type) > 0 {
+		reporterType = identity.Type
+	} else if len(input.ReporterType) > 0 {
+		reporterType = input.ReporterType
+	} else {
+		return nil, fmt.Errorf("ReporterType must not be empty.")
+	}
+
+	var count int64
+	c.Db.Model(&models.ReporterData{}).
+		Where("reporter_id = ? and reporter_type = ? and local_resource_id = ?", identity.Principal, reporterType, input.LocalResourceId).
+		Count(&count)
+
+	if count > 0 {
+		return nil, fmt.Errorf("Resource for instance %s of ReporterType %s already exists", identity.Principal, reporterType)
+	}
+
 	return &models.Resource{
 		// CreatedAt and UpdatedAt will be updated automatically by gorm
 		DisplayName:  input.DisplayName,
-		Tags:         input.Tags,
-		ResourceType: strings.ToLower(input.ResourceType),
-		Spec:         datatypes.JSON(input.Spec),
-		Status:       datatypes.JSON(input.Status),
-		Reporters: []models.Reporter{
-			{
-				Created: input.LocalTime,
-				Updated: input.LocalTime,
+		ResourceType: strings.ToLower(c.ResourceType),
+		Workspace:    input.Workspace,
+		ReporterData: []models.ReporterData{{
+			ReporterID: identity.Principal,
 
-				Name: identity.Principal,
-				Type: identity.Type,
-				URL:  identity.Href,
-
-				ConsoleHref: input.ConsoleHref,
-				ApiHref:     input.ApiHref,
-
-				LocalId: input.LocalId,
-			},
-		},
-	}
-}
-
-func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, model *models.Resource, identity *authnapi.Identity) {
-	model.DisplayName = input.DisplayName
-	model.Tags = input.Tags
-	model.UpdatedAt = input.LocalTime
-	model.Spec = datatypes.JSON(input.Spec)
-	model.Status = datatypes.JSON(input.Status)
-
-	found := false
-	for i := range model.Reporters {
-		r := &model.Reporters[i]
-		if r.Name == identity.Principal {
-			found = true
-
-			r.Updated = input.LocalTime
-
-			r.Type = identity.Type
-			r.URL = identity.Href
-
-			r.ConsoleHref = input.ConsoleHref
-			r.ApiHref = input.ApiHref
-
-			r.LocalId = input.LocalId
-		}
-	}
-
-	if !found {
-		reporter := models.Reporter{
 			Created: input.LocalTime,
 			Updated: input.LocalTime,
 
-			Name: identity.Principal,
-			Type: identity.Type,
-			URL:  identity.Href,
+			LocalResourceId: input.LocalResourceId,
+			ReporterType:    reporterType,
+			ReporterVersion: input.ReporterVersion,
 
 			ConsoleHref: input.ConsoleHref,
 			ApiHref:     input.ApiHref,
 
-			LocalId: input.LocalId,
-		}
-		model.Reporters = append(model.Reporters, reporter)
+			Data: datatypes.JSON(input.Data),
+		}},
+	}, nil
+}
+
+func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, model *models.Resource, identity *authnapi.Identity) error {
+	model.DisplayName = input.DisplayName
+	if input.Workspace != nil {
+		model.Workspace = input.Workspace
 	}
 
+	found := false
+	for i := range model.ReporterData {
+		r := &model.ReporterData[i]
+		if r.ReporterID == identity.Principal {
+			found = true
+
+			r.Updated = input.LocalTime
+			r.ReporterVersion = input.ReporterVersion
+			r.Data = datatypes.JSON(input.Data)
+
+			r.ConsoleHref = input.ConsoleHref
+			r.ApiHref = input.ApiHref
+
+			r.LocalResourceId = input.LocalResourceId
+		}
+	}
+
+	if !found {
+		reporter := models.ReporterData{
+			ReporterID: identity.Principal,
+
+			Created: input.LocalTime,
+			Updated: input.LocalTime,
+
+			LocalResourceId: input.LocalResourceId,
+			ReporterType:    identity.Type,
+			ReporterVersion: input.ReporterVersion,
+
+			ConsoleHref: input.ConsoleHref,
+			ApiHref:     input.ApiHref,
+
+			Data: datatypes.JSON(input.Data),
+		}
+		model.ReporterData = []models.ReporterData{reporter}
+	}
+	return nil
 }
