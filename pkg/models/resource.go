@@ -23,7 +23,7 @@ type ResourceIn struct {
 	// Allow reporters to specify when the resource was created or updated.  Don't allow them to have control
 	// over announcing their type or Id.  Reporter type and Reporter Id should be inferred (perhaps from the
 	// identity data of the caller) or otherwise communicated to common inventory.
-	LocalTime time.Time
+	LocalTime *time.Time
 
 	// Workspace is the ID of the workspace to which the resource is associated.
 	Workspace *string

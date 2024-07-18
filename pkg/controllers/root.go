@@ -36,9 +36,9 @@ func NewRootHandler(db *gorm.DB, authenticator authnapi.Authenticator, authorize
 		render.SetContentType(render.ContentTypeJSON),
 	).
 		Route(basePath, func(r chi.Router) {
-			r.Mount("/resources/hosts", NewResourceController(fmt.Sprintf("%s/resources/hosts", basePath), "hosts", db, authorizer, eventingManager, log).Routes())
-			r.Mount("/resources/clusters", NewResourceController(fmt.Sprintf("%s/resources/clusters", basePath), "clusters", db, authorizer, eventingManager, log).Routes())
-			r.Mount("/resources/acm-policies", NewResourceController(fmt.Sprintf("%s/resources/acm-policies", basePath), "acm-policies", db, authorizer, eventingManager, log).Routes())
+			r.Mount("/resources/hosts", NewResourceController(fmt.Sprintf("%s/resources/hosts", basePath), "host", db, authorizer, eventingManager, log).Routes())
+			r.Mount("/resources/clusters", NewResourceController(fmt.Sprintf("%s/resources/clusters", basePath), "cluster", db, authorizer, eventingManager, log).Routes())
+			r.Mount("/resources/acm-policies", NewResourceController(fmt.Sprintf("%s/resources/acm-policies", basePath), "acm-policy", db, authorizer, eventingManager, log).Routes())
 		})
 
 	return r

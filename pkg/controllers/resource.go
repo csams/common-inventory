@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -324,6 +325,13 @@ func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, i
 		return nil, fmt.Errorf("Resource for instance %s of ReporterType %s already exists", identity.Principal, reporterType)
 	}
 
+	var localTime time.Time
+	if input.LocalTime != nil {
+		localTime = *input.LocalTime
+	} else {
+		localTime = time.Now().UTC()
+	}
+
 	return &models.Resource{
 		// CreatedAt and UpdatedAt will be updated automatically by gorm
 		DisplayName:  input.DisplayName,
@@ -332,8 +340,8 @@ func (c *ResourceController) CreateResourceFromInput(input *models.ResourceIn, i
 		ReporterData: []models.ReporterData{{
 			ReporterID: identity.Principal,
 
-			Created: input.LocalTime,
-			Updated: input.LocalTime,
+			Created: localTime,
+			Updated: localTime,
 
 			LocalResourceId: input.LocalResourceId,
 			ReporterType:    reporterType,
@@ -353,13 +361,20 @@ func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, m
 		model.Workspace = input.Workspace
 	}
 
+	var localTime time.Time
+	if input.LocalTime != nil {
+		localTime = *input.LocalTime
+	} else {
+		localTime = time.Now().UTC()
+	}
+
 	found := false
 	for i := range model.ReporterData {
 		r := &model.ReporterData[i]
 		if r.ReporterID == identity.Principal {
 			found = true
 
-			r.Updated = input.LocalTime
+			r.Updated = localTime
 			r.ReporterVersion = input.ReporterVersion
 			r.Data = datatypes.JSON(input.Data)
 
@@ -374,8 +389,8 @@ func (c *ResourceController) UpdateResourceFromInput(input *models.ResourceIn, m
 		reporter := models.ReporterData{
 			ReporterID: identity.Principal,
 
-			Created: input.LocalTime,
-			Updated: input.LocalTime,
+			Created: localTime,
+			Updated: localTime,
 
 			LocalResourceId: input.LocalResourceId,
 			ReporterType:    identity.Type,
