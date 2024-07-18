@@ -37,11 +37,11 @@ Then run `./bin/common-inventory serve`
 In a separate terminal, run
 
 ```bash
-curl -H "Content-Type: application/json" -d '{"DisplayName": "Example Cluster" "ResourceType": "k8s-cluster", "LocalId": "1", "Spec": {"ApiServer": "www.example.com/api-server"}}}' http://localhost:9080/api/inventory/v1alpha1/resources
+curl -H "Authorization: Bearer 1234" -H "Content-Type: application/json" -d '{"DisplayName": "Example Cluster3", "ReporterType": "OCM", "ResourceType": "K8S-cluster", "LocalResourceId": "7", "Workspace": "csams", "Data": {"ApiServer": "www.example3.com/api-server"}}}' http://localhost:9080/api/inventory/v1alpha1/resources/clusters
 ```
 
 Then run
 
 ```bash
-curl '127.0.0.1:9080/api/v1alpha1/resources' | jq .
+curl '127.0.0.1:9080/api/v1alpha1/resources/clusters' | jq .
 ```
