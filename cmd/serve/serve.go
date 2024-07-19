@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 
 	"github.com/csams/common-inventory/pkg/authn"
 	"github.com/csams/common-inventory/pkg/authz"
@@ -134,7 +135,7 @@ func NewCommand(
 			quit := make(chan os.Signal, 1)
 			signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-			shutdown := gracefulShutdown(server, eventingManager, log)
+			shutdown := gracefulShutdown(db, server, eventingManager, log)
 
 			select {
 			case err := <-srvErrs:
@@ -157,7 +158,7 @@ func NewCommand(
 	return cmd
 }
 
-func gracefulShutdown(srv *server.Server, em eventingapi.Manager, log *slog.Logger) func(reason interface{}) {
+func gracefulShutdown(db *gorm.DB, srv *server.Server, em eventingapi.Manager, log *slog.Logger) func(reason interface{}) {
 	return func(reason interface{}) {
 		log.Info(fmt.Sprintf("Server Shutdown: %s", reason))
 
@@ -172,6 +173,12 @@ func gracefulShutdown(srv *server.Server, em eventingapi.Manager, log *slog.Logg
 		defer cancel()
 		if err := em.Shutdown(ctx); err != nil {
 			log.Error(fmt.Sprintf("Error Gracefully Shutting Down Eventing: %v", err))
+		}
+
+		if sqlDB, err := db.DB(); err != nil {
+			log.Error(fmt.Sprintf("Error Gracefully Shutting Down Storage: %v", err))
+		} else {
+			sqlDB.Close()
 		}
 	}
 }
