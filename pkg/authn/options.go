@@ -7,8 +7,8 @@ import (
 )
 
 type Options struct {
-	Oidc          *oidc.Options
-	PreSharedKeys *psk.Options
+	Oidc          *oidc.Options `mapstructure:"oidc"`
+	PreSharedKeys *psk.Options  `mapstructure:"psk"`
 }
 
 func NewOptions() *Options {
