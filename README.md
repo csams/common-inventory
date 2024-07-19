@@ -43,7 +43,7 @@ curl -H "Authorization: Bearer 1234" -H "Content-Type: application/json" -d '{"D
 Then run
 
 ```bash
-curl -H "Authorization: Bearer 1234" 127.0.0.1:9080/api/v1alpha1/resources/clusters | jq .
+curl -H "Authorization: Bearer 1234" 127.0.0.1:9080/api/inventory/v1alpha1/resources/clusters | jq .
 curl -H "Authorization: Bearer 1234" 127.0.0.1:9080/api/inventory/v1alpha1/resources/clusters/1 | jq . 
 curl -H "Authorization: Bearer 1234" 127.0.0.1:9080/api/inventory/v1alpha1/resources/clusters/hcrn:OCM:user@example.com:7 | jq .
 ```
