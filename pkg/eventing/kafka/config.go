@@ -12,7 +12,8 @@ type Config struct {
 }
 
 type completedConfig struct {
-	KafkaConfig *kafka.ConfigMap
+	DefaultTopic string
+	KafkaConfig  *kafka.ConfigMap
 }
 
 type CompletedConfig struct {
@@ -31,9 +32,11 @@ func (c *Config) Complete() (CompletedConfig, error) {
 	if c.KafkaConfig != nil {
 		config = c.KafkaConfig
 	} else {
+		// the debug key doesn't allow an empty value
 		if c.Debug != "" {
 			config.SetKey("debug", c.Debug)
 		}
+
 		config = &kafka.ConfigMap{}
 		config.SetKey("builtin.features", c.BuiltInFeatures)
 		config.SetKey("client.id", c.ClientId)
@@ -119,6 +122,7 @@ func (c *Config) Complete() (CompletedConfig, error) {
 	}
 
 	return CompletedConfig{&completedConfig{
-		KafkaConfig: config,
+		DefaultTopic: c.DefaultTopic,
+		KafkaConfig:  config,
 	}}, nil
 }

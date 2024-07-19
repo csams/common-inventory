@@ -1,9 +1,10 @@
 package api
 
-// this should be based on cloudevents
-
 type Event struct {
-	EventType    string
+	// TODO: enumerate the predefined event types.
+	EventType string
+
+	// TODO: events may be sent for relationships as well as resource types.
 	ResourceType string
 	Object       interface{}
 }

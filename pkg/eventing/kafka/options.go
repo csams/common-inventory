@@ -5,6 +5,7 @@ import (
 )
 
 type Options struct {
+	DefaultTopic                       string `mapstructure:"default-topic"`
 	BuiltInFeatures                    string `mapstructure:"builtin-features"`
 	ClientId                           string `mapstructure:"client-id"`
 	MetadataBrokerList                 string `mapstructure:"metadata-broker-list"`
@@ -91,6 +92,7 @@ type Options struct {
 
 func NewOptions() *Options {
 	return &Options{
+		DefaultTopic:                       "common-inventory",
 		BuiltInFeatures:                    "gzip, snappy, ssl, sasl, regex, lz4, sasl_plain, sasl_scram, plugins, zstd, sasl_oauthbearer, http, oidc",
 		ClientId:                           "rdkafka",
 		MetadataBrokerList:                 "",
@@ -180,6 +182,8 @@ func (o *Options) AddFlags(fs *pflag.FlagSet, prefix string) {
 	if prefix != "" {
 		prefix = prefix + "."
 	}
+
+	fs.StringVar(&o.DefaultTopic, prefix+"default-topic", o.DefaultTopic, "The topic to use.")
 
 	fs.StringVar(&o.BuiltInFeatures, prefix+"builtin-features", o.BuiltInFeatures, "Indicates the builtin features for this build of librdkafka. An application can either query this value or attempt to set it with its list of required features to check for library support. \n*Type: CSV flags*")
 	fs.StringVar(&o.ClientId, prefix+"client-id", o.BuiltInFeatures, "Client identifier. \n*Type: string*")

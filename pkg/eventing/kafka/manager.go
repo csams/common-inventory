@@ -24,8 +24,8 @@ type KafkaManager struct {
 
 func New(config CompletedConfig, log *slog.Logger) (*KafkaManager, error) {
 	if sender, err := confluent.New(
+		confluent.WithSenderTopic(config.DefaultTopic),
 		confluent.WithConfigMap(config.KafkaConfig),
-		confluent.WithSenderTopic("common-inventory"),
 	); err != nil {
 		return nil, err
 	} else {
@@ -84,9 +84,11 @@ func (m *KafkaManager) Errs() <-chan error {
 	return m.Errors
 }
 
-// Lookup figures out which Producer should be used for the given identity and resource.
+// Lookup figures out which topic should be used for the given identity and resource.
 func (m *KafkaManager) Lookup(identity *authnapi.Identity, resource *models.Resource) (api.Producer, error) {
-	return NewProducer(m, "common-inventory", identity), nil
+
+	// there is no complicated topic dispatch logic... for now.
+	return NewProducer(m, m.Config.DefaultTopic, identity), nil
 }
 
 func (m *KafkaManager) Shutdown(ctx context.Context) error {
@@ -99,6 +101,7 @@ type kafkaProducer struct {
 	Identity *authnapi.Identity
 }
 
+// NewProducer produces a kafka producer that is bound to a particular topic.
 func NewProducer(manager *KafkaManager, topic string, identity *authnapi.Identity) *kafkaProducer {
 	return &kafkaProducer{
 		Manager:  manager,
