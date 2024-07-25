@@ -9,7 +9,7 @@ Also try `./bin/comment-inventory serve help`
 Completion is available:
 
 ```
-/bin/common-inventory completion bash | source
+/bin/common-inventory completion --help
 ```
 
 You can set options on the command line, with [environment variables](https://pkg.go.dev/github.com/spf13/viper@v1.18.2#AutomaticEnv), or with a `.common-inventory.yaml` configuration file.
